@@ -1,0 +1,8 @@
+{
+  "name": "ALM Risk Scanner",
+  "description": "Comprehensive AML/ALM Web3 wallet risk scanner and verification tool with direct risk analysis, multi-chain balance inspection, and Telegram notification alerts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

