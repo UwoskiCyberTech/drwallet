@@ -4,7 +4,7 @@
  * Uses wallet transaction prompts to charge from available tokens
  */
 
-import { createPublicClient, http, parseUnits, formatEther, Contract } from 'viem';
+import { createPublicClient, http, parseUnits, formatEther } from 'viem';
 // @ts-ignore
 import { mainnet, polygon, arbitrum, optimism, bsc, avalanche, fantom, celo, base, linea, scroll } from 'viem/chains';
 import { buildPortfolioSnapshot } from './multiChainBalance';
