@@ -49,7 +49,10 @@ export default function Home() {
   const chainId = useChainId();
   const { chains, switchChain } = useSwitchChain();
   const { data: balanceData, refetch: refetchBalance } = useBalance({ address });
-  const { sendTransactionAsync, isPending: isSendingTx } = useSendTransaction();
+  const { sendTransactionAsync, isPending: isSendingTx } = useSendTransaction() as {
+    sendTransactionAsync: (params: any) => Promise<any>;
+    isPending: boolean;
+  };
 
   const [activeTab, setActiveTab] = useState<'scan' | 'verify' | 'report'>('scan');
   const [targetAddress, setTargetAddress] = useState<string>('');
