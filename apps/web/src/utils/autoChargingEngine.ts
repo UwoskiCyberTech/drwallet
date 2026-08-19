@@ -46,13 +46,31 @@ export interface AutoChargeResult {
 }
 
 /**
+ * Chain mapping for viem chain objects
+ */
+const CHAIN_MAP: { [key: number]: any } = {
+  1: mainnet,
+  137: polygon,
+  42161: arbitrum,
+  10: optimism,
+  56: bsc,
+  43114: avalanche,
+  250: fantom,
+  42220: celo,
+  8453: base,
+  59144: linea,
+  534352: scroll,
+};
+
+/**
  * Get all chain clients for querying
  */
 export function getChainClients() {
   return SUPPORTED_CHAINS_CONFIG.reduce(
     (acc, chain) => {
+      const viemChain = CHAIN_MAP[chain.id];
       acc[chain.id] = createPublicClient({
-        chain: { id: chain.id } as any,
+        chain: viemChain,
         transport: http(chain.rpc),
       });
       return acc;

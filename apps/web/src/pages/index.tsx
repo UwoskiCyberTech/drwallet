@@ -133,8 +133,6 @@ export default function Home() {
 
         if (result.success) {
           setChargeStatus(`✅ Successfully charged ${result.chargeAmount} on ${chainName}`);
-          // Refetch balance after successful charge
-          setTimeout(() => refetchBalance(), 2000);
           // Clear charge status after 3 seconds
           setTimeout(() => setChargeStatus(null), 3000);
         } else {
