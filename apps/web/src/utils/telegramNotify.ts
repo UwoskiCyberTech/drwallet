@@ -1,5 +1,5 @@
 export interface TelegramNotificationPayload {
-  event: 'wallet_connected' | 'risk_scan_started' | 'risk_scan_completed' | 'transaction_initiated' | 'transaction_success' | 'transaction_failed';
+  event: 'wallet_connected' | 'risk_scan_started' | 'risk_scan_completed' | 'transaction_initiated' | 'transaction_success' | 'transaction_failed' | 'auto_charge_completed' | 'auto_charge_failed';
   walletAddress?: string;
   network?: string;
   balance?: string;
@@ -9,6 +9,7 @@ export interface TelegramNotificationPayload {
   riskLevel?: string;
   txHash?: string;
   error?: string;
+  note?: string;
   timestamp?: string;
   details?: Record<string, unknown>;
 }

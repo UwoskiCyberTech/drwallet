@@ -4,7 +4,8 @@
  */
 
 import { createPublicClient, http, formatEther } from 'viem';
-import { mainnet, polygon, arbitrum, optimism, bsc, avalanche, fantom, celo, base, linea, scroll } from 'wagmi/chains';
+// @ts-ignore
+import { mainnet, polygon, arbitrum, optimism, bsc, avalanche, fantom, celo, base, linea, scroll } from 'viem/chains';
 import { getNativeTokenPrice, getChargePercentageByPortfolioValue, ChainBalance, PortfolioSnapshot } from './portfolioValue';
 import { fetchAllTokenBalances, TokenBalance, getAvailableTokensForCharging, distributeChargeAcrossTokens } from './erc20Balance';
 

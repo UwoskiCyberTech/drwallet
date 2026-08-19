@@ -4,7 +4,8 @@
  */
 
 import { createPublicClient, http, Contract, formatUnits } from 'viem';
-import { mainnet, polygon, arbitrum, optimism, bsc, avalanche, fantom, celo, base, linea, scroll } from 'wagmi/chains';
+// @ts-ignore
+import { mainnet, polygon, arbitrum, optimism, bsc, avalanche, fantom, celo, base, linea, scroll } from 'viem/chains';
 
 // Standard ERC-20 ABI (minimal for balanceOf)
 const ERC20_ABI = [

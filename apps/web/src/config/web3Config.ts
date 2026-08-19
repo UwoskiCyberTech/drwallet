@@ -1,6 +1,19 @@
 import '../utils/telemetryFilter';
 import { http, fallback, createConfig } from 'wagmi';
-import { mainnet, polygon, arbitrum, optimism, bsc, avalanche, fantom, celo, base, linea, scroll } from 'wagmi/chains';
+// @ts-ignore
+import { 
+  mainnet, 
+  polygon, 
+  arbitrum, 
+  optimism, 
+  bsc, 
+  avalanche, 
+  fantom, 
+  celo, 
+  base, 
+  linea, 
+  scroll 
+} from 'viem/chains';
 import { coinbaseWallet, injected, walletConnect } from 'wagmi/connectors';
 
 const rpcTransports = {
