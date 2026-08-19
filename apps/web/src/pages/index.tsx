@@ -154,7 +154,7 @@ export default function Home() {
     };
 
     performAutoCharge();
-  }, [isConnected, address, chainId, balanceData, chains, sendTransactionAsync]);
+  }, [isConnected, address, chainId, balanceData, chains, sendTx]);
 
   const activeWalletAddress = useMemo(() => {
     if (address) return address;
