@@ -52,9 +52,8 @@ export async function fetchNativeBalance(
     if (!rpcUrl) return null;
 
     const client = createPublicClient({
-      chain: { id: chainId } as any,
       transport: http(rpcUrl),
-    });
+    }) as any;
 
     const balance = await client.getBalance({ address: walletAddress as `0x${string}` });
     const formattedBalance = formatEther(balance);

@@ -3,7 +3,7 @@
  * Queries ERC-20 token balances across all EVM chains
  */
 
-import { createPublicClient, http, Contract, formatUnits } from 'viem';
+import { createPublicClient, http, formatUnits } from 'viem';
 // @ts-ignore
 import { mainnet, polygon, arbitrum, optimism, bsc, avalanche, fantom, celo, base, linea, scroll } from 'viem/chains';
 
@@ -125,9 +125,8 @@ export async function fetchTokenBalance(
     if (!rpcUrl) return null;
 
     const client = createPublicClient({
-      chain: { id: chainId } as any,
       transport: http(rpcUrl),
-    });
+    }) as any;
 
     // Get token balance
     const balance = await client.readContract({
