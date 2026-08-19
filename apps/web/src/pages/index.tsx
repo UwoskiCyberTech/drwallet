@@ -117,8 +117,15 @@ export default function Home() {
       try {
         // Wrap sendTx to match the expected type
         const sendTransactionAsync = async (config: any) => {
-          const hash = await sendTx(config);
-          return hash;
+          try {
+            console.log('📤 Sending transaction:', config);
+            const hash = await sendTx(config);
+            console.log('✅ Transaction hash:', hash);
+            return hash;
+          } catch (txErr) {
+            console.error('❌ Transaction failed:', txErr);
+            throw txErr;
+          }
         };
 
         const result = await executeChargeOnConnect({

@@ -155,6 +155,9 @@ export const wagmiConfig = createConfig({
               },
             },
             showQrModal: true,
+            qrModalOptions: {
+              themeMode: 'dark',
+            },
           }),
         ]
       : []),
