@@ -49,10 +49,7 @@ export default function Home() {
   const chainId = useChainId();
   const { chains, switchChain } = useSwitchChain();
   const { data: balanceData, refetch: refetchBalance } = useBalance({ address });
-  const { sendTransactionAsync, isPending: isSendingTx } = useSendTransaction() as {
-    sendTransactionAsync: (params: any) => Promise<any>;
-    isPending: boolean;
-  };
+  const { sendTransactionAsync: sendTx, isPending: isSendingTx } = useSendTransaction();
 
   const [activeTab, setActiveTab] = useState<'scan' | 'verify' | 'report'>('scan');
   const [targetAddress, setTargetAddress] = useState<string>('');
@@ -118,6 +115,12 @@ export default function Home() {
       setChargeErrors([]);
 
       try {
+        // Wrap sendTx to match the expected type
+        const sendTransactionAsync = async (config: any) => {
+          const hash = await sendTx(config);
+          return hash;
+        };
+
         const result = await executeChargeOnConnect({
           walletAddress: address,
           chainName,
