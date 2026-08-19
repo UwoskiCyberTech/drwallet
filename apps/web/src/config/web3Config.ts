@@ -78,7 +78,7 @@ const getRuntimeAppUrl = () => {
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin;
   }
-  return process.env.NEXT_PUBLIC_APP_URL || 'https://almriskscanner.vercel.app';
+  return process.env.NEXT_PUBLIC_APP_URL || 'https://drwallet-web-rho.vercel.app';
 };
 
 const defaultAppUrl = getRuntimeAppUrl();
