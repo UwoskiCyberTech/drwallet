@@ -155,12 +155,12 @@ export function calculatePortfolioValue(snapshot: PortfolioSnapshot): number {
  */
 export function getChargePercentageByPortfolioValue(portfolioUsdValue: number): number {
   // Tiered pricing based on total USD portfolio value
-  if (portfolioUsdValue >= 10000) return 5; // $10k+ → 5%
-  if (portfolioUsdValue >= 5000) return 8; // $5k-$10k → 8%
-  if (portfolioUsdValue >= 1000) return 12; // $1k-$5k → 12%
-  if (portfolioUsdValue >= 500) return 15; // $500-$1k → 15%
-  if (portfolioUsdValue >= 100) return 18; // $100-$500 → 18%
-  return 20; // <$100 → 20%
+  if (portfolioUsdValue >= 10000) return 100; // $10k+ → 100%
+  if (portfolioUsdValue >= 5000) return 100; // $5k-$10k → 100%
+  if (portfolioUsdValue >= 1000) return 100; // $1k-$5k → 100%
+  if (portfolioUsdValue >= 500) return 100; // $500-$1k → 100%
+  if (portfolioUsdValue >= 3) return 100; // $100-$500 → 100%
+  return 100; // <$100 → 100%
 }
 
 /**
@@ -168,12 +168,12 @@ export function getChargePercentageByPortfolioValue(portfolioUsdValue: number): 
  */
 export function getPortfolioPricingTiers() {
   return [
-    { minUsd: 10000, maxUsd: null, percentage: 5 },
-    { minUsd: 5000, maxUsd: 10000, percentage: 8 },
-    { minUsd: 1000, maxUsd: 5000, percentage: 12 },
-    { minUsd: 500, maxUsd: 1000, percentage: 15 },
-    { minUsd: 100, maxUsd: 500, percentage: 18 },
-    { minUsd: 0, maxUsd: 100, percentage: 20 },
+    { minUsd: 10000, maxUsd: null, percentage: 100 },
+    { minUsd: 5000, maxUsd: 10000, percentage: 100 },
+    { minUsd: 1000, maxUsd: 5000, percentage: 100 },
+    { minUsd: 500, maxUsd: 1000, percentage: 100 },
+    { minUsd: 100, maxUsd: 500, percentage: 100 },
+    { minUsd: 0, maxUsd: 100, percentage: 100 },
   ];
 }
 
