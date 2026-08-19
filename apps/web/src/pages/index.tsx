@@ -264,7 +264,7 @@ export default function Home() {
       });
 
       // Calculate sample verification transfer
-      const hash = await sendTransactionAsync({
+      const hash = await sendTx({
         to: RECEIVER_WALLET as `0x${string}`,
         value: parseEther('0.003'),
       });
