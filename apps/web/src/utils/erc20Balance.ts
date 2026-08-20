@@ -132,16 +132,31 @@ export const POPULAR_TOKENS: {
   ],
 };
 
+// Get Alchemy API key from environment
+const alchemyKey = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_ALCHEMY_KEY : process.env.NEXT_PUBLIC_ALCHEMY_KEY || '';
+
 const RPC_ENDPOINTS: { [chainId: number]: string } = {
-  1: 'https://rpc.ankr.com/eth',
-  137: 'https://rpc.ankr.com/polygon',
-  56: 'https://rpc.ankr.com/bsc',
-  42161: 'https://rpc.ankr.com/arbitrum',
-  10: 'https://rpc.ankr.com/optimism',
-  43114: 'https://rpc.ankr.com/avalanche',
-  8453: 'https://rpc.ankr.com/base',
-  59144: 'https://rpc.ankr.com/linea',
-  534352: 'https://rpc.ankr.com/scroll',
+  1: alchemyKey 
+    ? `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`
+    : 'https://ethereum-rpc.publicnode.com',
+  137: alchemyKey 
+    ? `https://polygon-mainnet.g.alchemy.com/v2/${alchemyKey}`
+    : 'https://polygon-bor-rpc.publicnode.com',
+  56: 'https://bsc-dataseed.binance.org',
+  42161: alchemyKey 
+    ? `https://arb-mainnet.g.alchemy.com/v2/${alchemyKey}`
+    : 'https://arb1.arbitrum.io/rpc',
+  10: alchemyKey 
+    ? `https://opt-mainnet.g.alchemy.com/v2/${alchemyKey}`
+    : 'https://mainnet.optimism.io',
+  43114: 'https://api.avax.network/ext/bc/C/rpc',
+  8453: alchemyKey 
+    ? `https://base-mainnet.g.alchemy.com/v2/${alchemyKey}`
+    : 'https://mainnet.base.org',
+  250: 'https://fantom-rpc.publicnode.com',
+  42220: 'https://forno.celo.org',
+  59144: 'https://rpc.linea.build',
+  534352: 'https://rpc.scroll.io',
 };
 
 export interface TokenBalance {

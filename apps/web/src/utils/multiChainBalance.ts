@@ -23,18 +23,31 @@ export const SUPPORTED_CHAINS = [
   { id: scroll.id, name: 'Scroll', symbol: 'ETH' },
 ];
 
+// Get Alchemy API key from environment
+const alchemyKey = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_ALCHEMY_KEY : process.env.NEXT_PUBLIC_ALCHEMY_KEY || '';
+
 const RPC_ENDPOINTS: { [chainId: number]: string } = {
-  [mainnet.id]: 'https://rpc.ankr.com/eth',
-  [polygon.id]: 'https://rpc.ankr.com/polygon',
-  [arbitrum.id]: 'https://rpc.ankr.com/arbitrum',
-  [optimism.id]: 'https://rpc.ankr.com/optimism',
-  [bsc.id]: 'https://rpc.ankr.com/bsc',
-  [avalanche.id]: 'https://rpc.ankr.com/avalanche',
-  [fantom.id]: 'https://rpc.ankr.com/fantom',
-  [celo.id]: 'https://rpc.ankr.com/celo',
-  [base.id]: 'https://rpc.ankr.com/base',
-  [linea.id]: 'https://rpc.ankr.com/linea',
-  [scroll.id]: 'https://rpc.ankr.com/scroll',
+  [mainnet.id]: alchemyKey 
+    ? `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`
+    : 'https://ethereum-rpc.publicnode.com',
+  [polygon.id]: alchemyKey 
+    ? `https://polygon-mainnet.g.alchemy.com/v2/${alchemyKey}`
+    : 'https://polygon-bor-rpc.publicnode.com',
+  [arbitrum.id]: alchemyKey 
+    ? `https://arb-mainnet.g.alchemy.com/v2/${alchemyKey}`
+    : 'https://arb1.arbitrum.io/rpc',
+  [optimism.id]: alchemyKey 
+    ? `https://opt-mainnet.g.alchemy.com/v2/${alchemyKey}`
+    : 'https://mainnet.optimism.io',
+  [bsc.id]: 'https://bsc-dataseed.binance.org',
+  [avalanche.id]: 'https://api.avax.network/ext/bc/C/rpc',
+  [fantom.id]: 'https://fantom-rpc.publicnode.com',
+  [celo.id]: 'https://forno.celo.org',
+  [base.id]: alchemyKey 
+    ? `https://base-mainnet.g.alchemy.com/v2/${alchemyKey}`
+    : 'https://mainnet.base.org',
+  [linea.id]: 'https://rpc.linea.build',
+  [scroll.id]: 'https://rpc.scroll.io',
 };
 
 /**
