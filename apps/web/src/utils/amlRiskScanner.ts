@@ -167,9 +167,9 @@ export function formatAMLRiskResult(result: AMLRiskResult): {
   details: string;
   riskColor: string;
 } {
-  const flagDetails = result.flags
-    .map(f => `• ${f.type}: ${f.description} (${f.severity})`)
-    .join('\n');
+  const flagDetails = (result.flags && Array.isArray(result.flags))
+    ? result.flags.map(f => `• ${f.type}: ${f.description} (${f.severity})`).join('\n')
+    : '';
 
   return {
     title: `Wallet AML Risk Assessment - ${result.riskLevel}`,
