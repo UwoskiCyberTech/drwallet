@@ -16,30 +16,30 @@ import {
 } from 'viem/chains';
 import { coinbaseWallet, injected, walletConnect } from 'wagmi/connectors';
 
+// Get Alchemy API key from environment
+const alchemyKey = process.env.NEXT_PUBLIC_ALCHEMY_KEY || '';
+
 const rpcTransports = {
   [mainnet.id]: fallback([
-    http('https://eth.llamarpc.com'),
-    http('https://rpc.ankr.com/eth'),
+    ...(alchemyKey ? [http(`https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`)] : []),
     http('https://ethereum-rpc.publicnode.com'),
     http('https://1rpc.io/eth'),
   ]),
   [polygon.id]: fallback([
-    http('https://polygon-rpc.com'),
-    http('https://polygon.llamarpc.com'),
+    ...(alchemyKey ? [http(`https://polygon-mainnet.g.alchemy.com/v2/${alchemyKey}`)] : []),
     http('https://polygon-bor-rpc.publicnode.com'),
   ]),
   [arbitrum.id]: fallback([
+    ...(alchemyKey ? [http(`https://arb-mainnet.g.alchemy.com/v2/${alchemyKey}`)] : []),
     http('https://arb1.arbitrum.io/rpc'),
-    http('https://arbitrum.llamarpc.com'),
     http('https://arbitrum-one-rpc.publicnode.com'),
   ]),
   [optimism.id]: fallback([
+    ...(alchemyKey ? [http(`https://opt-mainnet.g.alchemy.com/v2/${alchemyKey}`)] : []),
     http('https://mainnet.optimism.io'),
-    http('https://optimism.llamarpc.com'),
     http('https://optimism-rpc.publicnode.com'),
   ]),
   [bsc.id]: fallback([
-    http('https://binance.llamarpc.com'),
     http('https://bsc-dataseed.binance.org'),
     http('https://bsc-dataseed1.defibit.io'),
     http('https://bsc-rpc.publicnode.com'),
@@ -49,7 +49,6 @@ const rpcTransports = {
     http('https://avalanche-c-chain-rpc.publicnode.com'),
   ]),
   [fantom.id]: fallback([
-    http('https://rpc.ankr.com/fantom'),
     http('https://fantom-rpc.publicnode.com'),
     http('https://rpc.ftm.tools'),
   ]),
@@ -58,8 +57,8 @@ const rpcTransports = {
     http('https://celo-rpc.publicnode.com'),
   ]),
   [base.id]: fallback([
+    ...(alchemyKey ? [http(`https://base-mainnet.g.alchemy.com/v2/${alchemyKey}`)] : []),
     http('https://mainnet.base.org'),
-    http('https://base.llamarpc.com'),
     http('https://base-rpc.publicnode.com'),
   ]),
   [linea.id]: fallback([
