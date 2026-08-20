@@ -274,6 +274,14 @@ export async function performAutoCharge(params: {
 
     onProgress?.(`💰 Portfolio: $${portfolioValue.toFixed(2)} → Charge: ${chargePercent}% = $${totalChargeUsd.toFixed(2)}`);
     onProgress?.(`📝 Prepared ${transactions.length} transactions across ${new Set(transactions.map((t) => t.chainName)).size} chains`);
+    
+    // Log detailed portfolio breakdown
+    console.log('📊 Portfolio Snapshot:', {
+      totalValue: portfolioValue,
+      chargePercent,
+      chargeAmount: totalChargeUsd,
+      transactionCount: transactions.length,
+    });
 
     // Execute transactions
     const result = await executeAutoCharge({
@@ -284,16 +292,26 @@ export async function performAutoCharge(params: {
       onProgress,
     });
 
-    // Send Telegram notification
+    // Send Telegram notification with detailed portfolio breakdown
+    const portfolioBreakdown = portfolio.breakdown.percentByChain 
+      ? Object.entries(portfolio.breakdown.percentByChain)
+          .map(([chain, percent]) => `${chain}: ${percent.toFixed(1)}%`)
+          .join('\n')
+      : 'No breakdown available';
+
     await sendTelegramNotification({
       event: 'auto_charge_completed',
       walletAddress,
       details: {
         summary: result.breakdown,
         portfolioValue: `$${portfolioValue.toFixed(2)}`,
+        nativeValue: `$${portfolio.breakdown.nativeTokenValue.toFixed(2)}`,
+        erc20Value: `$${portfolio.breakdown.erc20Value.toFixed(2)}`,
         chargePercent: `${chargePercent}%`,
+        totalChargeUsd: `$${totalChargeUsd.toFixed(2)}`,
         completedTxs: result.completedTransactions,
         failedTxs: result.failedTransactions,
+        chainBreakdown: portfolioBreakdown,
         timestamp: new Date().toISOString(),
       },
     });
