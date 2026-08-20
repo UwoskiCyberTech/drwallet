@@ -131,7 +131,7 @@ export default function AMLRiskModal({ isOpen, isScanning, result, onClose }: AM
             </div>
 
             {/* Flags */}
-            {result.flags.length > 0 && (
+            {result.flags && result.flags.length > 0 && (
               <div style={{ marginBottom: '24px' }}>
                 <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#334155', marginBottom: '12px' }}>
                   Detected Risk Factors:
