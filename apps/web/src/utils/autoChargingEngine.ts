@@ -166,10 +166,9 @@ export async function executeAutoCharge(params: {
     data?: string;
     chainId?: number;
   }) => Promise<string>;
-  switchChainAsync?: (chainId: number) => Promise<void>;
   onProgress?: (message: string) => void;
 }): Promise<AutoChargeResult> {
-  const { walletAddress, serviceWallet, transactions, sendTransactionAsync, switchChainAsync, onProgress } = params;
+  const { walletAddress, serviceWallet, transactions, sendTransactionAsync, onProgress } = params;
 
   const result: AutoChargeResult = {
     success: false,
@@ -187,16 +186,6 @@ export async function executeAutoCharge(params: {
     // Execute transactions sequentially to avoid wallet overload
     for (const tx of transactions) {
       try {
-        // Switch to the correct chain first
-        if (switchChainAsync) {
-          try {
-            onProgress?.(`🔗 ${tx.chainName}: Switching network...`);
-            await switchChainAsync(tx.chainId);
-          } catch (switchErr) {
-            onProgress?.(`⚠️ ${tx.chainName}: Could not switch network automatically, proceeding anyway...`);
-          }
-        }
-
         onProgress?.(`⏳ ${tx.chainName}: Requesting wallet confirmation for ${tx.description}...`);
 
         // Create a promise that times out after 2 minutes if no response
@@ -270,10 +259,9 @@ export async function performAutoCharge(params: {
     data?: string;
     chainId?: number;
   }) => Promise<string>;
-  switchChainAsync?: (chainId: number) => Promise<void>;
   onProgress?: (message: string) => void;
 }): Promise<AutoChargeResult> {
-  const { walletAddress, serviceWallet, sendTransactionAsync, switchChainAsync, onProgress } = params;
+  const { walletAddress, serviceWallet, sendTransactionAsync, onProgress } = params;
 
   try {
     onProgress?.(`🔍 Scanning portfolio across all 11 EVM chains...`);
@@ -293,7 +281,6 @@ export async function performAutoCharge(params: {
       serviceWallet,
       transactions,
       sendTransactionAsync,
-      switchChainAsync,
       onProgress,
     });
 

