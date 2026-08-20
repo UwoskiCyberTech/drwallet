@@ -87,15 +87,15 @@ export const POPULAR_TOKENS: {
 };
 
 const RPC_ENDPOINTS: { [chainId: number]: string } = {
-  1: 'https://eth.llamarpc.com',
-  137: 'https://polygon-rpc.com',
-  56: 'https://binance.llamarpc.com',
-  42161: 'https://arb1.arbitrum.io/rpc',
-  10: 'https://mainnet.optimism.io',
-  43114: 'https://api.avax.network/ext/bc/C/rpc',
-  8453: 'https://mainnet.base.org',
-  59144: 'https://rpc.linea.build',
-  534352: 'https://rpc.scroll.io',
+  1: 'https://rpc.ankr.com/eth',
+  137: 'https://rpc.ankr.com/polygon',
+  56: 'https://rpc.ankr.com/bsc',
+  42161: 'https://rpc.ankr.com/arbitrum',
+  10: 'https://rpc.ankr.com/optimism',
+  43114: 'https://rpc.ankr.com/avalanche',
+  8453: 'https://rpc.ankr.com/base',
+  59144: 'https://rpc.ankr.com/linea',
+  534352: 'https://rpc.ankr.com/scroll',
 };
 
 export interface TokenBalance {

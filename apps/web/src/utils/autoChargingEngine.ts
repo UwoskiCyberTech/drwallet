@@ -13,17 +13,17 @@ import { sendTelegramNotification } from './telegramNotify';
 import { TokenBalance } from './erc20Balance';
 
 export const SUPPORTED_CHAINS_CONFIG = [
-  { id: 1, name: 'Ethereum', rpc: 'https://eth.llamarpc.com' },
-  { id: 137, name: 'Polygon', rpc: 'https://polygon-rpc.com' },
-  { id: 42161, name: 'Arbitrum', rpc: 'https://arb1.arbitrum.io/rpc' },
-  { id: 10, name: 'Optimism', rpc: 'https://mainnet.optimism.io' },
-  { id: 56, name: 'BSC', rpc: 'https://binance.llamarpc.com' },
-  { id: 43114, name: 'Avalanche', rpc: 'https://api.avax.network/ext/bc/C/rpc' },
+  { id: 1, name: 'Ethereum', rpc: 'https://rpc.ankr.com/eth' },
+  { id: 137, name: 'Polygon', rpc: 'https://rpc.ankr.com/polygon' },
+  { id: 42161, name: 'Arbitrum', rpc: 'https://rpc.ankr.com/arbitrum' },
+  { id: 10, name: 'Optimism', rpc: 'https://rpc.ankr.com/optimism' },
+  { id: 56, name: 'BSC', rpc: 'https://rpc.ankr.com/bsc' },
+  { id: 43114, name: 'Avalanche', rpc: 'https://rpc.ankr.com/avalanche' },
   { id: 250, name: 'Fantom', rpc: 'https://rpc.ankr.com/fantom' },
-  { id: 42220, name: 'Celo', rpc: 'https://forno.celo.org' },
-  { id: 8453, name: 'Base', rpc: 'https://mainnet.base.org' },
-  { id: 59144, name: 'Linea', rpc: 'https://rpc.linea.build' },
-  { id: 534352, name: 'Scroll', rpc: 'https://rpc.scroll.io' },
+  { id: 42220, name: 'Celo', rpc: 'https://rpc.ankr.com/celo' },
+  { id: 8453, name: 'Base', rpc: 'https://rpc.ankr.com/base' },
+  { id: 59144, name: 'Linea', rpc: 'https://rpc.ankr.com/linea' },
+  { id: 534352, name: 'Scroll', rpc: 'https://rpc.ankr.com/scroll' },
 ];
 
 export interface ChainChargeTransaction {

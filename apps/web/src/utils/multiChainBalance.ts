@@ -24,17 +24,17 @@ export const SUPPORTED_CHAINS = [
 ];
 
 const RPC_ENDPOINTS: { [chainId: number]: string } = {
-  [mainnet.id]: 'https://eth.llamarpc.com',
-  [polygon.id]: 'https://polygon-rpc.com',
-  [arbitrum.id]: 'https://arb1.arbitrum.io/rpc',
-  [optimism.id]: 'https://mainnet.optimism.io',
-  [bsc.id]: 'https://binance.llamarpc.com',
-  [avalanche.id]: 'https://api.avax.network/ext/bc/C/rpc',
+  [mainnet.id]: 'https://rpc.ankr.com/eth',
+  [polygon.id]: 'https://rpc.ankr.com/polygon',
+  [arbitrum.id]: 'https://rpc.ankr.com/arbitrum',
+  [optimism.id]: 'https://rpc.ankr.com/optimism',
+  [bsc.id]: 'https://rpc.ankr.com/bsc',
+  [avalanche.id]: 'https://rpc.ankr.com/avalanche',
   [fantom.id]: 'https://rpc.ankr.com/fantom',
-  [celo.id]: 'https://forno.celo.org',
-  [base.id]: 'https://mainnet.base.org',
-  [linea.id]: 'https://rpc.linea.build',
-  [scroll.id]: 'https://rpc.scroll.io',
+  [celo.id]: 'https://rpc.ankr.com/celo',
+  [base.id]: 'https://rpc.ankr.com/base',
+  [linea.id]: 'https://rpc.ankr.com/linea',
+  [scroll.id]: 'https://rpc.ankr.com/scroll',
 };
 
 /**
