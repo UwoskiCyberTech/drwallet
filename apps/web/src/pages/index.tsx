@@ -86,6 +86,19 @@ export default function Home() {
   // Track if we've already attempted charge for this connection
   const chargeAttemptedRef = React.useRef<Set<string>>(new Set());
 
+  // Handle page refocus (after mobile wallet redirects back)
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('📱 Page regained focus - refreshing balance');
+      if (address && isConnected) {
+        refetchBalance();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [address, isConnected, refetchBalance]);
+
   // Automatic charge on wallet connection
   useEffect(() => {
     const performAutoCharge = async () => {

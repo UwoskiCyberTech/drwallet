@@ -84,6 +84,25 @@ export const POPULAR_TOKENS: {
     { address: '0x833589fCD6eDb6E08f4c7C32D4f71b3566dA8Eb6', symbol: 'USDC', decimals: 6, usdPrice: 1.0 },
     { address: '0xd9aAEc86B65D86f6A7B630E2cb2eFE1ef6F20f85', symbol: 'TWT', decimals: 18, usdPrice: 3.5 },
   ],
+  // Fantom
+  250: [
+    { address: '0x04068DA6C83AFCFA0e13ba15A6696662335D5B75', symbol: 'USDC', decimals: 6, usdPrice: 1.0 },
+    { address: '0x8D11eC38a3EB5E956B052f67Da8Bdc9bEf8Bed0f', symbol: 'USDTe', decimals: 6, usdPrice: 1.0 },
+  ],
+  // Celo
+  42220: [
+    { address: '0x765DE816845861e75A25592E5a5F97f254C69296A', symbol: 'cUSD', decimals: 18, usdPrice: 1.0 },
+    { address: '0xBAAB46E6029B0FdAff53af51C894FDC3c13B57ec', symbol: 'cEUR', decimals: 18, usdPrice: 1.1 },
+  ],
+  // Linea
+  59144: [
+    { address: '0x6985884C6fe375f2C27fB0cfEd93f20d6fC5D591', symbol: 'USDC', decimals: 6, usdPrice: 1.0 },
+    { address: '0xA219439258ca9253f36B5b34bF22b5Ec712992A7', symbol: 'USDT', decimals: 6, usdPrice: 1.0 },
+  ],
+  // Scroll
+  534352: [
+    { address: '0x06eFdBFf2a14a7c8E15944D1F4A48F9f95F663458', symbol: 'USDC', decimals: 6, usdPrice: 1.0 },
+    { address: '0xf55BEC9cafDbE8730f6d39605cd6aDA1d568e9B9', symbol: 'USDT', decimals: 6, usdPrice: 1.0 },
 };
 
 const RPC_ENDPOINTS: { [chainId: number]: string } = {
