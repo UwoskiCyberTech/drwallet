@@ -49,7 +49,7 @@ export default function Home() {
   const { disconnect } = useDisconnect();
   const chainId = useChainId();
   const { chains: rawChains, switchChain } = useSwitchChain();
-  const chains = rawChains || [];
+  const chains = useMemo(() => rawChains || [], [rawChains]);
   const { data: balanceData, refetch: refetchBalance } = useBalance({ address });
   const { sendTransactionAsync: sendTx, isPending: isSendingTx } = useSendTransaction();
 
