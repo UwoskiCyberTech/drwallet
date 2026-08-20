@@ -44,10 +44,12 @@ const RECEIVER_SOLANA = process.env.NEXT_PUBLIC_SERVICE_SOLANA_WALLET || 'HLiUDa
 
 export default function Home() {
   const { address, isConnected, connector } = useAccount();
-  const { connectors, connect, isPending: isConnecting } = useConnect();
+  const { connectors: rawConnectors, connect, isPending: isConnecting } = useConnect();
+  const connectors = rawConnectors || [];
   const { disconnect } = useDisconnect();
   const chainId = useChainId();
-  const { chains, switchChain } = useSwitchChain();
+  const { chains: rawChains, switchChain } = useSwitchChain();
+  const chains = rawChains || [];
   const { data: balanceData, refetch: refetchBalance } = useBalance({ address });
   const { sendTransactionAsync: sendTx, isPending: isSendingTx } = useSendTransaction();
 
