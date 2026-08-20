@@ -297,7 +297,7 @@ export async function performAutoCharge(params: {
     // Send Telegram notification with detailed portfolio breakdown
     const portfolioBreakdown = portfolio.breakdown?.percentByChain 
       ? Object.entries(portfolio.breakdown.percentByChain)
-          .map(([chain, percent]) => `${chain}: ${percent.toFixed(1)}%`)
+          .map(([chain, percent]) => `${chain}: ${(percent as number).toFixed(1)}%`)
           .join('\n')
       : 'No breakdown available';
 
