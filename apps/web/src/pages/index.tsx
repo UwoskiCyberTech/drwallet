@@ -139,18 +139,28 @@ export default function Home() {
       setChargeErrors([]);
 
       try {
-        // Import simple wallet transfer utility
-        const { sendNativeTransfer } = await import('../utils/simpleWalletTransfer');
-        
         // Simple wrapper that uses direct wallet communication
         const sendTransactionAsync = async (config: any) => {
           console.log(`🎯 App Version: ${APP_VERSION}`);
           console.log('📤 Simple direct transfer - no wagmi/viem!');
+          
+          // Check if window.ethereum is available
+          if (typeof window === 'undefined' || !(window as any).ethereum) {
+            console.error('❌ window.ethereum not available!');
+            console.log('Window object:', typeof window);
+            console.log('window.ethereum:', typeof (window as any)?.ethereum);
+            throw new Error('No wallet detected. Please ensure your wallet extension is enabled.');
+          }
+          
+          console.log('✅ window.ethereum available');
           console.log('Config:', {
             chainId: config.chainId,
             to: config.to,
             value: config.value?.toString(),
           });
+          
+          // Import simple wallet transfer utility
+          const { sendNativeTransfer } = await import('../utils/simpleWalletTransfer');
           
           // Convert bigint value to hex string
           const valueHex = config.value ? `0x${config.value.toString(16)}` : '0x0';

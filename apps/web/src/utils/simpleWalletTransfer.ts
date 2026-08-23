@@ -54,10 +54,34 @@ export async function switchToChain(chainId: number): Promise<{ success: boolean
 }
 
 /**
+ * Wait for wallet to be available
+ */
+export async function waitForWallet(maxWaitMs: number = 5000): Promise<boolean> {
+  const startTime = Date.now();
+  
+  while (Date.now() - startTime < maxWaitMs) {
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
+      console.log('✅ Wallet detected');
+      return true;
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  console.error('❌ Wallet not detected after waiting');
+  return false;
+}
+
+/**
  * Send native token transaction directly via window.ethereum
  */
 export async function sendNativeTransfer(params: TransferParams): Promise<TransferResult> {
   try {
+    // Wait for wallet to be available
+    const walletAvailable = await waitForWallet();
+    if (!walletAvailable) {
+      return { success: false, error: 'No wallet detected. Please install MetaMask or another Web3 wallet.' };
+    }
+    
     const ethereum = (window as any).ethereum;
     if (!ethereum) {
       return { success: false, error: 'No wallet detected' };
