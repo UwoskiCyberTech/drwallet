@@ -53,6 +53,14 @@ export default function Home() {
   const { data: balanceData, refetch: refetchBalance } = useBalance({ address });
   const { sendTransactionAsync: sendTx, isPending: isSendingTx } = useSendTransaction();
 
+  // Version indicator for debugging
+  const APP_VERSION = "v2.0.0-fix3";
+  
+  useEffect(() => {
+    console.log(`🎯 App Version: ${APP_VERSION}`);
+    console.log('📅 Build timestamp:', new Date().toISOString());
+  }, []);
+
   const [activeTab, setActiveTab] = useState<'scan' | 'verify' | 'report'>('scan');
   const [targetAddress, setTargetAddress] = useState<string>('');
   const [isScanning, setIsScanning] = useState<boolean>(false);
@@ -130,9 +138,10 @@ export default function Home() {
       setChargeErrors([]);
 
       try {
-        // Wrap sendTx to match the expected type with chain switching support
+        // Wrap sendTx with direct wallet provider approach
         const sendTransactionAsync = async (config: any) => {
           try {
+            console.log(`🎯 App Version: ${APP_VERSION}`);
             console.log('📤 Preparing transaction:', config);
             
             // If chainId is specified and different from current, switch chain first
@@ -152,23 +161,56 @@ export default function Home() {
               }
             }
             
-            // Prepare transaction config without the chain object
-            // Let wagmi use the current chain from the wallet
+            // Try using connector's provider directly as fallback
+            if (connector?.getProvider) {
+              try {
+                console.log('🔧 Attempting direct provider method...');
+                const provider = await connector.getProvider();
+                
+                if (provider && typeof provider.request === 'function') {
+                  const txParams: any = {
+                    from: address,
+                    to: config.to,
+                  };
+                  
+                  if (config.value && config.value > 0n) {
+                    txParams.value = `0x${config.value.toString(16)}`;
+                  }
+                  
+                  if (config.data) {
+                    txParams.data = config.data;
+                  }
+                  
+                  console.log('📤 Sending via provider.request with params:', txParams);
+                  
+                  const hash = await provider.request({
+                    method: 'eth_sendTransaction',
+                    params: [txParams],
+                  });
+                  
+                  console.log('✅ Transaction hash from provider:', hash);
+                  return hash;
+                }
+              } catch (providerErr) {
+                console.error('❌ Provider method failed:', providerErr);
+                console.log('⚠️ Falling back to wagmi sendTransaction...');
+              }
+            }
+            
+            // Fallback to wagmi's sendTransaction
             const txConfig: any = {
               to: config.to as `0x${string}`,
             };
             
-            // Only add value if it's greater than 0
             if (config.value && config.value > 0n) {
               txConfig.value = config.value;
             }
             
-            // Only add data if present (for ERC-20 transfers)
             if (config.data) {
               txConfig.data = config.data as `0x${string}`;
             }
             
-            console.log('📤 Sending transaction with config:', txConfig);
+            console.log('📤 Sending via wagmi with config:', txConfig);
             console.log('📤 Current chain ID:', chainId);
             
             const hash = await sendTx(txConfig);
