@@ -1,0 +1,109 @@
+╔════════════════════════════════════════════════════════════════╗
+║      🔍 IMPROVED ERROR LOGGING - FIND THE REAL ISSUE          ║
+╚════════════════════════════════════════════════════════════════╝
+
+WHAT I CHANGED:
+══════════════════════════════════════════════════════════════════
+The error was being reported as "Unknown error" because we weren't
+capturing the full error details. Now we:
+
+✅ Log the full error object to console
+✅ Log the error stack trace
+✅ Log the transaction config that failed
+✅ Capture and forward the actual error message
+✅ Preserve all error details through the chain
+
+WHAT YOU NEED TO DO NOW:
+══════════════════════════════════════════════════════════════════
+
+1. WAIT 1-2 MINUTES FOR DEPLOYMENT
+
+2. CLEAR BROWSER CACHE (CRITICAL!)
+   • Ctrl + Shift + R
+   OR
+   • Ctrl + Shift + N (Incognito mode)
+
+3. OPEN BROWSER CONSOLE
+   • Press F12
+   • Click "Console" tab
+
+4. VERIFY VERSION
+   Must show: v2.0.0-fix6-improved-logging
+   
+   If not → Cache not cleared!
+
+5. CONNECT YOUR WALLET
+   Watch the console carefully
+
+6. COPY ALL CONSOLE OUTPUT
+   • Right-click in console
+   • Select "Save as..." or copy all text
+   • SEND ME THE FULL CONSOLE LOG
+
+WHAT TO LOOK FOR IN CONSOLE:
+══════════════════════════════════════════════════════════════════
+
+You should see detailed error information like:
+
+❌ Transaction error: [actual error object]
+Error details: {
+  name: "...",
+  message: "...",  ← THE REAL ERROR!
+  stack: "...",
+  txConfig: {
+    chainId: 56,
+    to: "0x...",
+    value: "...",
+    hasData: false
+  }
+}
+
+POSSIBLE ERRORS WE MIGHT SEE:
+══════════════════════════════════════════════════════════════════
+
+• "User rejected the request" 
+  → You clicked "Cancel" in wallet
+
+• "Insufficient funds for gas" 
+  → Not enough BNB for gas fee
+
+• "Provider not available" 
+  → Wallet extension issue
+
+• "Chain switch failed" 
+  → Wallet didn't switch to BSC
+
+• "eth_sendTransaction" errors
+  → RPC or wallet communication issue
+
+• "Internal JSON-RPC error"
+  → BSC RPC issue or wallet issue
+
+DEPLOYMENT STATUS:
+══════════════════════════════════════════════════════════════════
+✅ Improved error logging (commit: caa3cfc)
+✅ Pushed to GitHub
+✅ Vercel auto-deploy triggered
+⏳ Build in progress (~1-2 minutes)
+
+AFTER YOU TRY AGAIN:
+══════════════════════════════════════════════════════════════════
+
+1. Check version: v2.0.0-fix6-improved-logging
+2. Connect wallet
+3. Look at console for detailed errors
+4. Copy EVERYTHING from console
+5. Send me the full log
+
+The console will now show the REAL error, not just "Unknown error"!
+
+═══════════════════════════════════════════════════════════════════
+
+IMPORTANT NOTES:
+────────────────────────────────────────────────────────────────────
+• Make sure you're on the NEW version (check console)
+• Keep console open the ENTIRE time
+• Copy ALL console output (even if it's long)
+• The real error is in there somewhere!
+
+Let's find out what's actually failing! 🔍
