@@ -1,0 +1,135 @@
+╔════════════════════════════════════════════════════════════════╗
+║   🚨 CRITICAL: YOU ARE ON THE OLD CACHED VERSION! 🚨           ║
+╚════════════════════════════════════════════════════════════════╝
+
+YOUR CONSOLE SHOWS:
+  origin 'https://almriskscan-3qqlfohvo-uwoski-s-projects.vercel.app'
+  
+THIS IS THE OLD BROKEN VERSION FROM MANY DEPLOYMENTS AGO!
+
+ALL THE FIXES WE MADE (v2.0.0-fix6) ARE NOT IN THAT VERSION!
+
+═══════════════════════════════════════════════════════════════
+
+HOW TO GET THE LATEST VERSION:
+
+METHOD 1: CLEAR ALL CACHE (RECOMMENDED)
+────────────────────────────────────────────────────────────────
+1. Close ALL tabs with almriskscan open
+2. Press Ctrl + Shift + Delete
+3. Select these options:
+   ✅ Browsing history
+   ✅ Download history  
+   ✅ Cookies and other site data
+   ✅ Cached images and files
+4. Select "All time"
+5. Click "Clear data"
+6. Wait 10 seconds
+7. Open your site again
+8. Press F12, check URL in console (should NOT be 3qqlfohvo)
+
+METHOD 2: INCOGNITO MODE (FASTEST)
+────────────────────────────────────────────────────────────────
+1. Press Ctrl + Shift + N (Windows) or Cmd + Shift + N (Mac)
+2. Go to: https://almriskscan.vercel.app
+3. Connect wallet
+4. Test
+
+METHOD 3: USE DIRECT LATEST DEPLOYMENT URL
+────────────────────────────────────────────────────────────────
+Go to your Vercel dashboard:
+https://vercel.com/uwoski-s-projects/almriskscan/deployments
+
+Find the LATEST deployment (top of list)
+Click it
+Use the deployment URL directly
+
+═══════════════════════════════════════════════════════════════
+
+WHY YOU'RE SEEING ERRORS:
+
+1. OLD VERSION ISSUES:
+   • Wrong transaction code (uses broken useSendTransaction)
+   • No proper error logging
+   • Invalid address checksum handling
+   • Wrong chain switching logic
+
+2. RPC/CORS ERRORS:
+   • Many RPC endpoints failing with CORS
+   • Alchemy API returning 403 errors
+   • Fantom RPC completely blocked
+
+3. CHECKSUM VALIDATION ERRORS:
+   • Token addresses failing checksum (viem strictness)
+   • Many "Address is invalid" errors
+
+═══════════════════════════════════════════════════════════════
+
+WHAT THE NEW VERSION HAS:
+
+✅ Direct wallet provider communication (bypasses wagmi hooks)
+✅ Proper chain switching with verification
+✅ Retry logic if chain switch fails  
+✅ Better error messages
+✅ Fixed address checksum issues
+✅ Improved logging to see actual errors
+✅ 5 second wait after chain switch
+✅ Complete transaction rewrite
+
+═══════════════════════════════════════════════════════════════
+
+TO VERIFY YOU HAVE THE NEW VERSION:
+
+Open console (F12) and look for:
+  🎯 App Version: v2.0.0-fix6-improved-logging
+  
+If you see this → You have the NEW version ✅
+If you DON'T see this → Still on OLD version ❌
+
+═══════════════════════════════════════════════════════════════
+
+AFTER CLEARING CACHE:
+
+1. Connect your wallet
+2. Watch console carefully
+3. Look for detailed transaction logs:
+   📤 Preparing transaction: {...}
+   🔄 Switching to BSC...
+   ✅ Chain verified: wallet on chain 56
+   📤 Sending via wallet provider: {...}
+
+4. Wallet should show:
+   • Network switch popup → Approve
+   • Transaction popup → Approve
+
+5. If it still fails, SEND ME:
+   • Full console log (F12 → Console → Copy all)
+   • Screenshot of error
+   • Telegram notification
+
+═══════════════════════════════════════════════════════════════
+
+IMPORTANT NOTES:
+
+• The old version (3qqlfohvo) is BROKEN
+• All fixes are in NEW version only
+• YOU MUST clear cache or use incognito
+• Check version number in console FIRST
+• If version is wrong, try incognito mode
+
+═══════════════════════════════════════════════════════════════
+
+DO THIS RIGHT NOW:
+
+1. Ctrl + Shift + N (Incognito mode) ← EASIEST!
+2. Go to: https://almriskscan.vercel.app
+3. F12 → Check: "🎯 App Version: v2.0.0-fix6-improved-logging"
+4. Connect wallet
+5. Test!
+
+If the version is STILL wrong in incognito mode, then Vercel 
+didn't deploy yet. Check Vercel dashboard for deployment status.
+
+═══════════════════════════════════════════════════════════════
+
+The code is fixed. You just need to load the NEW version!
