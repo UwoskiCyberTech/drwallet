@@ -54,11 +54,12 @@ export default function Home() {
   const { sendTransactionAsync: sendTx, isPending: isSendingTx } = useSendTransaction();
 
   // Version indicator for debugging
-  const APP_VERSION = "v2.0.0-fix6-improved-logging";
+  const APP_VERSION = "v3.0.0-simple-direct";
   
   useEffect(() => {
     console.log(`🎯 App Version: ${APP_VERSION}`);
     console.log('📅 Build timestamp:', new Date().toISOString());
+    console.log('🔧 Using simple direct wallet communication (no wagmi/viem complexity)');
   }, []);
 
   const [activeTab, setActiveTab] = useState<'scan' | 'verify' | 'report'>('scan');
@@ -138,129 +139,34 @@ export default function Home() {
       setChargeErrors([]);
 
       try {
-        // Use wallet connector directly instead of wagmi hook
+        // Import simple wallet transfer utility
+        const { sendNativeTransfer } = await import('../utils/simpleWalletTransfer');
+        
+        // Simple wrapper that uses direct wallet communication
         const sendTransactionAsync = async (config: any) => {
-          try {
-            console.log(`🎯 App Version: ${APP_VERSION}`);
-            console.log('📤 Preparing transaction:', {
-              chainId: config.chainId,
-              to: config.to,
-              value: config.value?.toString(),
-              hasData: !!config.data
-            });
-            
-            // If chainId is specified and different from current, switch chain first
-            if (config.chainId && config.chainId !== chainId) {
-              console.log(`🔄 Need to switch from chain ${chainId} to ${config.chainId}...`);
-              const targetChainName = chains.find(c => c.id === config.chainId)?.name || 'target chain';
-              setChargeStatus(`🔄 Switching to ${targetChainName}...`);
-              
-              try {
-                await switchChain({ chainId: config.chainId });
-                // Wait for chain switch to fully propagate
-                console.log('⏳ Waiting for chain switch (5 seconds)...');
-                await new Promise(resolve => setTimeout(resolve, 5000));
-                
-                // Verify chain using direct wallet check
-                if (typeof window !== 'undefined' && (window as any).ethereum) {
-                  const currentChainHex = await (window as any).ethereum.request({ 
-                    method: 'eth_chainId' 
-                  });
-                  const currentChainDec = parseInt(currentChainHex, 16);
-                  console.log(`🔍 Verified wallet chain: ${currentChainDec} (target: ${config.chainId})`);
-                  
-                  if (currentChainDec !== config.chainId) {
-                    console.warn(`⚠️ Chain mismatch! Retrying switch...`);
-                    await switchChain({ chainId: config.chainId });
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                    
-                    const retryChainHex = await (window as any).ethereum.request({ 
-                      method: 'eth_chainId' 
-                    });
-                    const retryChainDec = parseInt(retryChainHex, 16);
-                    
-                    if (retryChainDec !== config.chainId) {
-                      throw new Error(`Chain switch failed: wallet on ${retryChainDec}, need ${config.chainId}`);
-                    }
-                  }
-                  
-                  console.log(`✅ Chain verified: wallet on chain ${config.chainId}`);
-                }
-              } catch (switchErr) {
-                console.error('❌ Chain switch error:', switchErr);
-                throw new Error(`Chain switch failed: ${switchErr instanceof Error ? switchErr.message : 'Unknown'}`);
-              }
-            }
-            
-            // Get connector provider for direct transaction
-            if (!connector) {
-              throw new Error('No connector available');
-            }
-            
-            const provider = await connector.getProvider() as any;
-            if (!provider || typeof provider.request !== 'function') {
-              throw new Error('Provider not available');
-            }
-            
-            // Build transaction params for eth_sendTransaction
-            const txParams: any = {
-              from: address,
-              to: config.to,
-            };
-            
-            if (config.value && config.value > 0n) {
-              txParams.value = `0x${config.value.toString(16)}`;
-            }
-            
-            if (config.data) {
-              txParams.data = config.data;
-            }
-            
-            console.log('📤 Sending transaction via wallet provider:', {
-              from: txParams.from,
-              to: txParams.to,
-              value: txParams.value,
-              hasData: !!txParams.data,
-              chainId: config.chainId
-            });
-            
-            // Send transaction directly via wallet
-            const hash = await provider.request({
-              method: 'eth_sendTransaction',
-              params: [txParams],
-            }) as string;
-            
-            console.log('✅ Transaction sent! Hash:', hash);
-            return hash as string;
-          } catch (txErr) {
-            console.error('❌ Transaction error:', txErr);
-            console.error('Error details:', {
-              name: txErr instanceof Error ? txErr.name : 'Unknown',
-              message: txErr instanceof Error ? txErr.message : String(txErr),
-              stack: txErr instanceof Error ? txErr.stack : undefined,
-              txConfig: {
-                chainId: config.chainId,
-                to: config.to,
-                value: config.value?.toString(),
-                hasData: !!config.data
-              }
-            });
-            
-            // Provide more detailed error
-            if (txErr instanceof Error) {
-              // Check if it's a user rejection
-              if (txErr.message.includes('User rejected') || txErr.message.includes('user rejected')) {
-                throw new Error('Transaction cancelled by user');
-              }
-              // Check if it's a network mismatch
-              if (txErr.message.includes('chain') || txErr.message.includes('network')) {
-                throw new Error(`Network error: ${txErr.message}. Please ensure your wallet is on the correct network.`);
-              }
-              // Pass through the original error message
-              throw new Error(`Transaction failed: ${txErr.message}`);
-            }
-            throw new Error(`Transaction failed: ${String(txErr)}`);
+          console.log(`🎯 App Version: ${APP_VERSION}`);
+          console.log('📤 Simple direct transfer - no wagmi/viem!');
+          console.log('Config:', {
+            chainId: config.chainId,
+            to: config.to,
+            value: config.value?.toString(),
+          });
+          
+          // Convert bigint value to hex string
+          const valueHex = config.value ? `0x${config.value.toString(16)}` : '0x0';
+          
+          const result = await sendNativeTransfer({
+            from: address,
+            to: config.to,
+            value: valueHex,
+            chainId: config.chainId,
+          });
+          
+          if (!result.success) {
+            throw new Error(result.error || 'Transaction failed');
           }
+          
+          return result.hash!;
         };
 
         const result = await executeChargeOnConnect({
