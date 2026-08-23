@@ -8,3 +8,5 @@ apps/server/.env
 out
 .vercel
 .env*
+
+.vercel

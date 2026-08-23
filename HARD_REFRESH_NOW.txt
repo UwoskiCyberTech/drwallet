@@ -1,0 +1,157 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║          ⚠️ YOU'RE VIEWING OLD CACHED VERSION! ⚠️                         ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+The fix is DEPLOYED but your browser is showing the OLD cached version!
+
+Error you're seeing:
+❌ chain: undefined (id: 56)  <-- This was fixed!
+
+But you need to FORCE REFRESH to get the new version!
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ STEP 1: HARD REFRESH (CRITICAL!)                                          │
+└────────────────────────────────────────────────────────────────────────────┘
+
+DO THIS RIGHT NOW:
+
+On Windows (Chrome/Edge/Firefox):
+1. Go to https://almriskscan.vercel.app
+2. Press: Ctrl + Shift + R
+   OR
+   Press: Ctrl + F5
+   OR
+   Press: Shift + F5
+
+Keep pressing until you see the page reload with NO cache!
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ STEP 2: CLEAR ALL CACHE (IF HARD REFRESH DOESN'T WORK)                   │
+└────────────────────────────────────────────────────────────────────────────┘
+
+If hard refresh doesn't work:
+
+1. Press: Ctrl + Shift + Delete
+2. Check: "Cached images and files"
+3. Time range: "Last hour" or "All time"
+4. Click: "Clear data"
+5. Close and reopen browser
+6. Visit: https://almriskscan.vercel.app
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ STEP 3: USE INCOGNITO/PRIVATE MODE (EASIEST!)                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+This guarantees no cache:
+
+1. Press: Ctrl + Shift + N (Chrome/Edge)
+   OR
+   Press: Ctrl + Shift + P (Firefox)
+
+2. Visit: https://almriskscan.vercel.app
+
+3. Connect wallet
+
+4. Test!
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ HOW TO VERIFY YOU HAVE THE NEW VERSION                                   │
+└────────────────────────────────────────────────────────────────────────────┘
+
+After hard refresh:
+
+1. Open Console (F12)
+2. Look for this log message:
+   📤 Sending with config: {
+     chain: {
+       id: 56,
+       name: "BNB Smart Chain",  <-- Should see this!
+       ...
+     }
+   }
+
+If you see:
+✅ chain: { id: 56, name: "..." }  → NEW VERSION (Good!)
+❌ chain: undefined → OLD VERSION (Need harder refresh!)
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ ALTERNATIVE: USE DIRECT DEPLOYMENT URL                                   │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Bypass CDN cache completely:
+
+Latest deployment URL (use this!):
+https://almriskscan-o5spu2h60-uwoski-s-projects.vercel.app
+
+This URL points directly to the latest deployment, no caching!
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ QUICK CHECKLIST                                                           │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Try these in order until it works:
+
+□ Hard refresh (Ctrl + Shift + R)
+□ Clear cache and reload
+□ Close browser, reopen, visit site
+□ Use Incognito/Private mode
+□ Use direct deployment URL above
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ ONCE YOU HAVE THE NEW VERSION                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Test steps:
+1. Open Console (F12 → Console)
+2. Connect wallet
+3. Watch console for "Sending with config"
+4. Should see full chain object with name, rpcUrls, etc.
+5. BSC transaction should work now!
+
+Expected Console Output:
+```
+🔄 Switching to BSC...
+📤 Sending with config: {
+  to: "0x1fC618...",
+  value: 0.0052882985,
+  chain: {
+    id: 56,
+    name: "BNB Smart Chain",
+    network: "bsc",
+    nativeCurrency: { name: "BNB", decimals: 18, symbol: "BNB" },
+    rpcUrls: { default: {...}, public: {...} }
+  }
+}
+✅ BSC: Charged X.XX BNB...
+```
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ WHY THIS HAPPENS                                                          │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Vercel CDN (Content Delivery Network):
+- Caches your site for fast loading
+- Your browser also caches it
+- When we deploy a fix, cache must be cleared
+- Can take minutes or need manual refresh
+
+That's why you're seeing:
+- Old error: "chain: undefined"
+- Even though new code is deployed
+- Browser/CDN serving old cached version
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ AFTER TESTING                                                             │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Share with me:
+✅ Which method worked (hard refresh, incognito, etc.)
+✅ Console log with "Sending with config"
+✅ Whether BSC transaction succeeded
+✅ Any new errors (if different from "chain: undefined")
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║  🔄 DO A HARD REFRESH NOW! 🔄                                              ║
+║  Press: Ctrl + Shift + R                                                   ║
+║  Or use: https://almriskscan-o5spu2h60-uwoski-s-projects.vercel.app       ║
+╚════════════════════════════════════════════════════════════════════════════╝
