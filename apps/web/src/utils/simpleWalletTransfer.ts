@@ -76,16 +76,37 @@ export async function waitForWallet(maxWaitMs: number = 5000): Promise<boolean> 
  */
 export async function sendNativeTransfer(params: TransferParams): Promise<TransferResult> {
   try {
+    console.log('🔍 Starting sendNativeTransfer...');
+    console.log('🌐 Environment check:', {
+      isSSR: typeof window === 'undefined',
+      hasWindow: typeof window !== 'undefined',
+      hasEthereum: typeof window !== 'undefined' && !!(window as any).ethereum,
+    });
+    
+    // Check if we're running on server side
+    if (typeof window === 'undefined') {
+      console.error('❌ Running in SSR context - no window object');
+      return { success: false, error: 'Cannot execute transaction during server-side rendering' };
+    }
+    
     // Wait for wallet to be available
-    const walletAvailable = await waitForWallet();
+    const walletAvailable = await waitForWallet(10000); // Increased timeout to 10 seconds
     if (!walletAvailable) {
+      console.error('❌ Wallet not available after 10 seconds');
       return { success: false, error: 'No wallet detected. Please install MetaMask or another Web3 wallet.' };
     }
     
     const ethereum = (window as any).ethereum;
     if (!ethereum) {
-      return { success: false, error: 'No wallet detected' };
+      console.error('❌ window.ethereum is null/undefined');
+      console.error('Available properties:', Object.keys(window as any));
+      return { success: false, error: 'No wallet provider detected. Please ensure your wallet extension is enabled.' };
     }
+
+    console.log('✅ Wallet provider available:', {
+      isMetaMask: ethereum.isMetaMask,
+      chainId: ethereum.chainId,
+    });
 
     console.log('📤 Preparing transfer:', {
       from: params.from,
@@ -127,31 +148,64 @@ export async function sendNativeTransfer(params: TransferParams): Promise<Transf
       gas: '0x5208', // 21000 gas for simple transfer
     };
 
-    console.log('Transaction params:', txParams);
-
-    const hash = await ethereum.request({
-      method: 'eth_sendTransaction',
-      params: [txParams],
+    console.log('📝 Transaction params:', txParams);
+    console.log('📝 Ethereum provider details:', {
+      request: typeof ethereum.request,
+      sendAsync: typeof ethereum.sendAsync,
+      send: typeof ethereum.send,
+      isMetaMask: ethereum.isMetaMask,
+      isTrust: ethereum.isTrust,
     });
 
-    console.log('✅ Transaction sent! Hash:', hash);
+    // Try using ethereum.request first
+    try {
+      console.log('🔄 Attempting eth_sendTransaction...');
+      const hash = await ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [txParams],
+      });
 
-    return { success: true, hash };
+      console.log('✅ Transaction sent! Hash:', hash);
+      return { success: true, hash };
+    } catch (requestError: any) {
+      console.error('❌ ethereum.request failed:', requestError);
+      
+      // If eth_sendTransaction doesn't work, return specific error
+      throw new Error(`Transaction request failed: ${requestError?.message || requestError}`);
+    }
   } catch (err: any) {
-    const error = err.message || String(err);
-    console.error('❌ Transfer failed:', err);
+    // Comprehensive error logging
+    console.error('❌ sendNativeTransfer FAILED');
+    console.error('Error object:', err);
+    console.error('Error type:', typeof err);
+    console.error('Error constructor:', err?.constructor?.name);
+    console.error('Error message:', err?.message);
+    console.error('Error code:', err?.code);
+    console.error('Error data:', err?.data);
+    console.error('Error stack:', err?.stack);
+    
+    const errorMessage = err?.message || err?.toString() || 'Unknown error';
     
     // Check for user rejection
-    if (error.includes('User rejected') || error.includes('User denied') || err.code === 4001) {
+    if (errorMessage.includes('User rejected') || errorMessage.includes('User denied') || err.code === 4001) {
       return { success: false, error: 'User cancelled transaction' };
     }
     
     // Check for insufficient funds
-    if (error.includes('insufficient funds')) {
+    if (errorMessage.includes('insufficient funds')) {
       return { success: false, error: 'Insufficient funds for transaction + gas' };
     }
     
-    return { success: false, error };
+    // Check for Unknown RPC method
+    if (errorMessage.includes('Unknown method') || errorMessage.includes('does not exist/is not available')) {
+      return { 
+        success: false, 
+        error: 'Network error: ' + errorMessage + '. This may be due to wallet configuration or network issues.'
+      };
+    }
+    
+    // Return detailed error with context
+    return { success: false, error: `Network error: ${errorMessage}` };
   }
 }
 

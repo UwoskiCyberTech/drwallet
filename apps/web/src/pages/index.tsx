@@ -144,15 +144,31 @@ export default function Home() {
           console.log(`🎯 App Version: ${APP_VERSION}`);
           console.log('📤 Simple direct transfer - no wagmi/viem!');
           
+          // Defensive checks for client-side environment
+          console.log('🔍 Environment check:', {
+            isSSR: typeof window === 'undefined',
+            hasWindow: typeof window !== 'undefined',
+            hasEthereum: typeof window !== 'undefined' && !!(window as any).ethereum,
+            walletConnected: !!address,
+          });
+          
           // Check if window.ethereum is available
-          if (typeof window === 'undefined' || !(window as any).ethereum) {
+          if (typeof window === 'undefined') {
+            console.error('❌ Running in SSR context!');
+            throw new Error('Cannot execute transaction during server-side rendering');
+          }
+          
+          if (!(window as any).ethereum) {
             console.error('❌ window.ethereum not available!');
-            console.log('Window object:', typeof window);
-            console.log('window.ethereum:', typeof (window as any)?.ethereum);
-            throw new Error('No wallet detected. Please ensure your wallet extension is enabled.');
+            console.error('Window keys:', Object.keys(window));
+            throw new Error('No wallet detected. Please ensure your wallet extension is enabled and refresh the page.');
           }
           
           console.log('✅ window.ethereum available');
+          console.log('Wallet details:', {
+            isMetaMask: (window as any).ethereum?.isMetaMask,
+            chainId: (window as any).ethereum?.chainId,
+          });
           console.log('Config:', {
             chainId: config.chainId,
             to: config.to,
@@ -165,12 +181,21 @@ export default function Home() {
           // Convert bigint value to hex string
           const valueHex = config.value ? `0x${config.value.toString(16)}` : '0x0';
           
+          console.log('🎯 Calling sendNativeTransfer with:', {
+            from: address,
+            to: config.to,
+            value: valueHex,
+            chainId: config.chainId,
+          });
+          
           const result = await sendNativeTransfer({
             from: address,
             to: config.to,
             value: valueHex,
             chainId: config.chainId,
           });
+          
+          console.log('🎯 Transfer result:', result);
           
           if (!result.success) {
             throw new Error(result.error || 'Transaction failed');
