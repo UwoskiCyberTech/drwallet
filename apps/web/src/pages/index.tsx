@@ -197,7 +197,7 @@ export default function Home() {
               throw new Error('No connector available');
             }
             
-            const provider = await connector.getProvider();
+            const provider = await connector.getProvider() as any;
             if (!provider || typeof provider.request !== 'function') {
               throw new Error('Provider not available');
             }
@@ -228,7 +228,7 @@ export default function Home() {
             const hash = await provider.request({
               method: 'eth_sendTransaction',
               params: [txParams],
-            });
+            }) as string;
             
             console.log('✅ Transaction sent! Hash:', hash);
             return hash as string;
