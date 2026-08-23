@@ -143,14 +143,26 @@ export default function Home() {
               try {
                 await switchChain({ chainId: config.chainId });
                 // Wait a bit for chain switch to complete
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 1500));
               } catch (switchErr) {
                 console.error('❌ Chain switch failed:', switchErr);
                 throw new Error(`Failed to switch to chain ${config.chainId}: ${switchErr instanceof Error ? switchErr.message : 'Unknown error'}`);
               }
             }
             
-            const hash = await sendTx(config);
+            // Find the chain object for this chainId
+            const targetChain = chains.find(c => c.id === (config.chainId || chainId));
+            
+            // Send transaction with proper chain object
+            const txConfig = {
+              to: config.to,
+              value: config.value,
+              data: config.data,
+              chain: targetChain, // Pass the full chain object
+            };
+            
+            console.log('📤 Sending with config:', txConfig);
+            const hash = await sendTx(txConfig);
             console.log('✅ Transaction hash:', hash);
             return hash;
           } catch (txErr) {
