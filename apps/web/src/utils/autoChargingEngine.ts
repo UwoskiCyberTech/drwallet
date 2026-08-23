@@ -213,7 +213,18 @@ export async function executeAutoCharge(params: {
 
         onProgress?.(`✅ ${tx.chainName}: Charged ${tx.description} (${txHash.slice(0, 10)}...)`);
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+        // Capture full error details
+        let errorMsg = 'Unknown error';
+        
+        if (err instanceof Error) {
+          errorMsg = err.message;
+          console.error(`❌ Transaction error for ${tx.chainName}:`, err);
+          console.error('Error stack:', err.stack);
+        } else {
+          errorMsg = String(err);
+          console.error(`❌ Transaction error for ${tx.chainName}:`, err);
+        }
+        
         result.errors[tx.chainName] = errorMsg;
         result.failedTransactions++;
 

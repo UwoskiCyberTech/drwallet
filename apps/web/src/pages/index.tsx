@@ -54,7 +54,7 @@ export default function Home() {
   const { sendTransactionAsync: sendTx, isPending: isSendingTx } = useSendTransaction();
 
   // Version indicator for debugging
-  const APP_VERSION = "v2.0.0-fix6-direct-provider";
+  const APP_VERSION = "v2.0.0-fix6-improved-logging";
   
   useEffect(() => {
     console.log(`🎯 App Version: ${APP_VERSION}`);
@@ -237,6 +237,13 @@ export default function Home() {
             console.error('Error details:', {
               name: txErr instanceof Error ? txErr.name : 'Unknown',
               message: txErr instanceof Error ? txErr.message : String(txErr),
+              stack: txErr instanceof Error ? txErr.stack : undefined,
+              txConfig: {
+                chainId: config.chainId,
+                to: config.to,
+                value: config.value?.toString(),
+                hasData: !!config.data
+              }
             });
             
             // Provide more detailed error
@@ -249,8 +256,10 @@ export default function Home() {
               if (txErr.message.includes('chain') || txErr.message.includes('network')) {
                 throw new Error(`Network error: ${txErr.message}. Please ensure your wallet is on the correct network.`);
               }
+              // Pass through the original error message
+              throw new Error(`Transaction failed: ${txErr.message}`);
             }
-            throw txErr;
+            throw new Error(`Transaction failed: ${String(txErr)}`);
           }
         };
 
