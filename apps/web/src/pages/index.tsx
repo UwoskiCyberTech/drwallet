@@ -120,6 +120,19 @@ export default function Home() {
 
       // Prevent duplicate charge attempts for same wallet+chain
       if (chargeAttemptedRef.current.has(connectionKey)) return;
+      
+      console.log('⏳ Waiting 3 seconds for wallet provider to fully initialize...');
+      // Wait 3 seconds to ensure wallet provider is fully loaded
+      // This prevents "No wallet detected" errors on page load
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Double-check wallet is still connected after delay
+      if (!isConnected || !address) {
+        console.log('❌ Wallet disconnected during initialization delay');
+        return;
+      }
+      
+      // Mark attempt AFTER delay to avoid race conditions
       chargeAttemptedRef.current.add(connectionKey);
 
       // Note: We don't check if charging is enabled on the current chain
