@@ -54,7 +54,7 @@ export default function Home() {
   const { sendTransactionAsync: sendTx, isPending: isSendingTx } = useSendTransaction();
 
   // Version indicator for debugging
-  const APP_VERSION = "v2.0.0-fix5";
+  const APP_VERSION = "v2.0.0-fix6-direct-provider";
   
   useEffect(() => {
     console.log(`🎯 App Version: ${APP_VERSION}`);
@@ -138,85 +138,109 @@ export default function Home() {
       setChargeErrors([]);
 
       try {
-        // Wrap sendTx with chain switching and better error handling
+        // Use wallet connector directly instead of wagmi hook
         const sendTransactionAsync = async (config: any) => {
           try {
             console.log(`🎯 App Version: ${APP_VERSION}`);
-            console.log('📤 Preparing transaction:', config);
+            console.log('📤 Preparing transaction:', {
+              chainId: config.chainId,
+              to: config.to,
+              value: config.value?.toString(),
+              hasData: !!config.data
+            });
             
             // If chainId is specified and different from current, switch chain first
             if (config.chainId && config.chainId !== chainId) {
-              console.log(`🔄 Switching from chain ${chainId} to ${config.chainId}...`);
+              console.log(`🔄 Need to switch from chain ${chainId} to ${config.chainId}...`);
               const targetChainName = chains.find(c => c.id === config.chainId)?.name || 'target chain';
               setChargeStatus(`🔄 Switching to ${targetChainName}...`);
               
               try {
                 await switchChain({ chainId: config.chainId });
-                // Wait longer for chain switch to fully propagate
-                console.log('⏳ Waiting for chain switch to propagate (5 seconds)...');
+                // Wait for chain switch to fully propagate
+                console.log('⏳ Waiting for chain switch (5 seconds)...');
                 await new Promise(resolve => setTimeout(resolve, 5000));
                 
-                // Verify chain was actually switched by checking window.ethereum
+                // Verify chain using direct wallet check
                 if (typeof window !== 'undefined' && (window as any).ethereum) {
                   const currentChainHex = await (window as any).ethereum.request({ 
                     method: 'eth_chainId' 
                   });
                   const currentChainDec = parseInt(currentChainHex, 16);
-                  console.log(`🔍 Verified current chain: ${currentChainDec} (expected: ${config.chainId})`);
+                  console.log(`🔍 Verified wallet chain: ${currentChainDec} (target: ${config.chainId})`);
                   
                   if (currentChainDec !== config.chainId) {
-                    console.warn(`⚠️ Chain mismatch detected! Retrying switch...`);
-                    // Try switching again
+                    console.warn(`⚠️ Chain mismatch! Retrying switch...`);
                     await switchChain({ chainId: config.chainId });
                     await new Promise(resolve => setTimeout(resolve, 3000));
                     
-                    // Verify again
                     const retryChainHex = await (window as any).ethereum.request({ 
                       method: 'eth_chainId' 
                     });
                     const retryChainDec = parseInt(retryChainHex, 16);
                     
                     if (retryChainDec !== config.chainId) {
-                      throw new Error(`Chain switch failed: wallet on chain ${retryChainDec}, expected ${config.chainId}`);
+                      throw new Error(`Chain switch failed: wallet on ${retryChainDec}, need ${config.chainId}`);
                     }
                   }
+                  
+                  console.log(`✅ Chain verified: wallet on chain ${config.chainId}`);
                 }
-                
-                console.log(`✅ Chain switch verified: now on chain ${config.chainId}`);
               } catch (switchErr) {
-                console.error('❌ Chain switch failed:', switchErr);
-                throw new Error(`Failed to switch to chain ${config.chainId}: ${switchErr instanceof Error ? switchErr.message : 'Unknown error'}`);
+                console.error('❌ Chain switch error:', switchErr);
+                throw new Error(`Chain switch failed: ${switchErr instanceof Error ? switchErr.message : 'Unknown'}`);
               }
             }
             
-            // Build transaction config without chainId (not supported by useSendTransaction)
-            const txConfig: any = {
-              to: config.to as `0x${string}`,
+            // Get connector provider for direct transaction
+            if (!connector) {
+              throw new Error('No connector available');
+            }
+            
+            const provider = await connector.getProvider();
+            if (!provider || typeof provider.request !== 'function') {
+              throw new Error('Provider not available');
+            }
+            
+            // Build transaction params for eth_sendTransaction
+            const txParams: any = {
+              from: address,
+              to: config.to,
             };
             
             if (config.value && config.value > 0n) {
-              txConfig.value = config.value;
+              txParams.value = `0x${config.value.toString(16)}`;
             }
             
             if (config.data) {
-              txConfig.data = config.data as `0x${string}`;
+              txParams.data = config.data;
             }
             
-            console.log('📤 Sending via wagmi with config:', {
-              to: txConfig.to,
-              from: address,
-              value: txConfig.value ? `${formatEther(txConfig.value)} ${chains.find(c => c.id === config.chainId)?.nativeCurrency?.symbol || 'tokens'}` : undefined,
-              hasData: !!txConfig.data,
-              dataLength: config.data ? config.data.length : 0,
-              targetChain: config.chainId,
-              targetChainName: chains.find(c => c.id === config.chainId)?.name,
+            console.log('📤 Sending transaction via wallet provider:', {
+              from: txParams.from,
+              to: txParams.to,
+              value: txParams.value,
+              hasData: !!txParams.data,
+              chainId: config.chainId
             });
             
-            // Send transaction
-            const hash = await sendTx(txConfig);
-            console.log('✅ Transaction hash:', hash);
-            return hash;
+            // Send transaction directly via wallet
+            const hash = await provider.request({
+              method: 'eth_sendTransaction',
+              params: [txParams],
+            });
+            
+            console.log('✅ Transaction sent! Hash:', hash);
+            return hash as string;
           } catch (txErr) {
+            console.error('❌ Transaction error:', txErr);
+            console.error('Error details:', {
+              name: txErr instanceof Error ? txErr.name : 'Unknown',
+              message: txErr instanceof Error ? txErr.message : String(txErr),
+            });
+            throw txErr;
+          }
+        }; {
             console.error('❌ Transaction failed:', txErr);
             // Provide more detailed error
             if (txErr instanceof Error) {
