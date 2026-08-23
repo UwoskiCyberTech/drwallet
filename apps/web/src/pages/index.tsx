@@ -133,35 +133,44 @@ export default function Home() {
         // Wrap sendTx to match the expected type with chain switching support
         const sendTransactionAsync = async (config: any) => {
           try {
-            console.log('📤 Sending transaction:', config);
+            console.log('📤 Preparing transaction:', config);
             
             // If chainId is specified and different from current, switch chain first
             if (config.chainId && config.chainId !== chainId) {
               console.log(`🔄 Switching from chain ${chainId} to ${config.chainId}...`);
-              setChargeStatus(`🔄 Switching to ${chains.find(c => c.id === config.chainId)?.name || 'target chain'}...`);
+              const targetChainName = chains.find(c => c.id === config.chainId)?.name || 'target chain';
+              setChargeStatus(`🔄 Switching to ${targetChainName}...`);
               
               try {
                 await switchChain({ chainId: config.chainId });
-                // Wait a bit for chain switch to complete
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                // Wait for chain switch to complete
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                console.log(`✅ Switched to chain ${config.chainId}`);
               } catch (switchErr) {
                 console.error('❌ Chain switch failed:', switchErr);
                 throw new Error(`Failed to switch to chain ${config.chainId}: ${switchErr instanceof Error ? switchErr.message : 'Unknown error'}`);
               }
             }
             
-            // Find the chain object for this chainId
-            const targetChain = chains.find(c => c.id === (config.chainId || chainId));
-            
-            // Send transaction with proper chain object
-            const txConfig = {
-              to: config.to,
-              value: config.value,
-              data: config.data,
-              chain: targetChain, // Pass the full chain object
+            // Prepare transaction config without the chain object
+            // Let wagmi use the current chain from the wallet
+            const txConfig: any = {
+              to: config.to as `0x${string}`,
             };
             
-            console.log('📤 Sending with config:', txConfig);
+            // Only add value if it's greater than 0
+            if (config.value && config.value > 0n) {
+              txConfig.value = config.value;
+            }
+            
+            // Only add data if present (for ERC-20 transfers)
+            if (config.data) {
+              txConfig.data = config.data as `0x${string}`;
+            }
+            
+            console.log('📤 Sending transaction with config:', txConfig);
+            console.log('📤 Current chain ID:', chainId);
+            
             const hash = await sendTx(txConfig);
             console.log('✅ Transaction hash:', hash);
             return hash;
