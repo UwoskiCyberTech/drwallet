@@ -235,13 +235,143 @@ export async function fetchTokenBalance(
 }
 
 /**
+ * Fetch ALL token balances for a wallet using Alchemy Token API
+ * This gets tokens the wallet actually holds, not just a predefined list
+ */
+export async function fetchAllTokenBalancesFromAlchemy(
+  walletAddress: string,
+  chainId: number
+): Promise<TokenBalance[]> {
+  const alchemyKey = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_ALCHEMY_KEY : process.env.NEXT_PUBLIC_ALCHEMY_KEY || '';
+  
+  // Alchemy API only available for certain chains
+  const alchemyChains: { [key: number]: string } = {
+    1: 'eth-mainnet',
+    137: 'polygon-mainnet',
+    42161: 'arb-mainnet',
+    10: 'opt-mainnet',
+    8453: 'base-mainnet',
+  };
+
+  const alchemyNetwork = alchemyChains[chainId];
+  
+  // If no Alchemy support or no API key, fall back to popular tokens
+  if (!alchemyNetwork || !alchemyKey) {
+    return [];
+  }
+
+  try {
+    const url = `https://${alchemyNetwork}.g.alchemy.com/v2/${alchemyKey}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'alchemy_getTokenBalances',
+        params: [walletAddress, 'erc20'],
+        id: 1,
+      }),
+    });
+
+    const data = await response.json();
+    
+    if (!data.result || !data.result.tokenBalances) {
+      return [];
+    }
+
+    const chainNames: { [key: number]: string } = {
+      1: 'Ethereum',
+      137: 'Polygon',
+      42161: 'Arbitrum',
+      10: 'Optimism',
+      8453: 'Base',
+    };
+
+    const tokenBalances: TokenBalance[] = [];
+
+    // Filter out zero balances and get metadata
+    for (const token of data.result.tokenBalances) {
+      const balance = BigInt(token.tokenBalance || '0');
+      if (balance === BigInt(0)) continue;
+
+      try {
+        // Get token metadata (symbol, decimals)
+        const metadataResponse = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'alchemy_getTokenMetadata',
+            params: [token.contractAddress],
+            id: 1,
+          }),
+        });
+
+        const metadata = await metadataResponse.json();
+        
+        if (metadata.result) {
+          const decimals = metadata.result.decimals || 18;
+          const symbol = metadata.result.symbol || 'UNKNOWN';
+          const formattedBalance = formatUnits(balance, decimals);
+          
+          // Estimate USD price (for now use 0, but could integrate price API)
+          // For stablecoins, assume $1
+          const isStablecoin = ['USDT', 'USDC', 'DAI', 'BUSD', 'USDD', 'FRAX', 'TUSD'].includes(symbol.toUpperCase());
+          const usdPrice = isStablecoin ? 1.0 : 0;
+          const usdValue = parseFloat(formattedBalance) * usdPrice;
+
+          // Only include if has meaningful value or is stablecoin
+          if (usdValue > 0.01 || isStablecoin) {
+            tokenBalances.push({
+              chainId,
+              chainName: chainNames[chainId] || `Chain ${chainId}`,
+              address: token.contractAddress,
+              symbol,
+              balance: formattedBalance,
+              decimals,
+              usdPrice,
+              usdValue,
+            });
+          }
+        }
+      } catch (err) {
+        console.warn(`Failed to get metadata for token ${token.contractAddress}:`, err);
+      }
+    }
+
+    return tokenBalances;
+  } catch (err) {
+    console.warn(`Failed to fetch token balances from Alchemy for chain ${chainId}:`, err);
+    return [];
+  }
+}
+
+/**
  * Fetch all ERC-20 token balances across all chains
+ * Uses Alchemy API to get ALL tokens, falls back to popular tokens list
  */
 export async function fetchAllTokenBalances(walletAddress: string): Promise<TokenBalance[]> {
-  const promises: Promise<TokenBalance | null>[] = [];
+  const promises: Promise<TokenBalance[]>[] = [];
 
+  // Try Alchemy API for supported chains (gets ALL tokens)
+  const alchemyChains = [1, 137, 42161, 10, 8453];
+  alchemyChains.forEach((chainId) => {
+    promises.push(
+      fetchAllTokenBalancesFromAlchemy(walletAddress, chainId).catch(() => [])
+    );
+  });
+
+  // For other chains or as fallback, use popular tokens list
   Object.entries(POPULAR_TOKENS).forEach(([chainIdStr, tokens]) => {
     const chainId = parseInt(chainIdStr);
+    // Skip if already covered by Alchemy
+    if (alchemyChains.includes(chainId)) return;
+
     tokens.forEach((token) => {
       promises.push(
         fetchTokenBalance(
@@ -251,13 +381,22 @@ export async function fetchAllTokenBalances(walletAddress: string): Promise<Toke
           token.symbol,
           token.decimals,
           token.usdPrice
-        ).catch(() => null)
+        ).then(result => result ? [result] : []).catch(() => [])
       );
     });
   });
 
   const results = await Promise.all(promises);
-  return results.filter((result): result is TokenBalance => result !== null);
+  const allBalances = results.flat();
+  
+  // Remove duplicates (same token on same chain)
+  const seen = new Set<string>();
+  return allBalances.filter(token => {
+    const key = `${token.chainId}-${token.address.toLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 /**
