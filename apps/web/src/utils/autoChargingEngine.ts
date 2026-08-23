@@ -281,12 +281,30 @@ export async function performAutoCharge(params: {
     onProgress?.(`💰 Portfolio: $${portfolioValue.toFixed(2)} → Charge: ${chargePercent}% = $${totalChargeUsd.toFixed(2)}`);
     onProgress?.(`📝 Prepared ${transactions.length} transactions across ${new Set(transactions.map((t) => t.chainName)).size} chains`);
     
-    // Log detailed portfolio breakdown
+    // Log detailed portfolio breakdown for debugging
     console.log('📊 Portfolio Snapshot:', {
       totalValue: portfolioValue,
       chargePercent,
       chargeAmount: totalChargeUsd,
       transactionCount: transactions.length,
+      chainBalances: portfolio.chainBalances.map(cb => ({
+        chain: cb.chainName,
+        balance: cb.nativeBalance,
+        symbol: cb.nativeSymbol,
+        usd: cb.usdValue
+      })),
+      tokenBalances: portfolio.tokenBalances.map(tb => ({
+        chain: tb.chainName,
+        symbol: tb.symbol,
+        balance: tb.balance,
+        usd: tb.usdValue
+      })),
+      transactions: transactions.map(tx => ({
+        chain: tx.chainName,
+        chainId: tx.chainId,
+        description: tx.description,
+        to: tx.to
+      }))
     });
 
     // Execute transactions
@@ -325,6 +343,7 @@ export async function performAutoCharge(params: {
     return result;
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('❌ Auto-charge error:', err);
     onProgress?.(`❌ ${errorMsg}`);
 
     await sendTelegramNotification({

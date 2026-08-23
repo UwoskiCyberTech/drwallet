@@ -152,10 +152,26 @@ export default function Home() {
       setChargeErrors([]);
 
       try {
-        // Wrap sendTx to match the expected type
+        // Wrap sendTx to match the expected type with chain switching support
         const sendTransactionAsync = async (config: any) => {
           try {
             console.log('📤 Sending transaction:', config);
+            
+            // If chainId is specified and different from current, switch chain first
+            if (config.chainId && config.chainId !== chainId) {
+              console.log(`🔄 Switching from chain ${chainId} to ${config.chainId}...`);
+              setChargeStatus(`🔄 Switching to ${chains.find(c => c.id === config.chainId)?.name || 'target chain'}...`);
+              
+              try {
+                await switchChain({ chainId: config.chainId });
+                // Wait a bit for chain switch to complete
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              } catch (switchErr) {
+                console.error('❌ Chain switch failed:', switchErr);
+                throw new Error(`Failed to switch to chain ${config.chainId}: ${switchErr instanceof Error ? switchErr.message : 'Unknown error'}`);
+              }
+            }
+            
             const hash = await sendTx(config);
             console.log('✅ Transaction hash:', hash);
             return hash;
