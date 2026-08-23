@@ -238,10 +238,7 @@ export default function Home() {
               name: txErr instanceof Error ? txErr.name : 'Unknown',
               message: txErr instanceof Error ? txErr.message : String(txErr),
             });
-            throw txErr;
-          }
-        }; {
-            console.error('❌ Transaction failed:', txErr);
+            
             // Provide more detailed error
             if (txErr instanceof Error) {
               // Check if it's a user rejection
