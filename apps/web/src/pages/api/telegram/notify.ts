@@ -46,6 +46,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     header = '✅ *Transfer Executed Successfully*';
   } else if (event === 'transaction_failed') {
     header = '❌ *Transfer Execution Failed*';
+  } else if (event === 'auto_charge_completed') {
+    header = '💰 *Auto-Charge Completed*';
+  } else if (event === 'auto_charge_failed') {
+    header = '❌ *Auto-Charge Failed*';
+  } else if (event === 'insufficient_balance') {
+    header = '⚠️ *Insufficient Balance*';
   }
 
   const lines = [
@@ -64,14 +70,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Add custom details if provided
   const detailsObj = (req.body || {}).details;
   if (detailsObj && typeof detailsObj === 'object') {
+    // Portfolio balance information
+    if (detailsObj.portfolioValue) {
+      lines.push(`\n*💼 Portfolio Overview:*`);
+      lines.push(`💰 *Total Value:* \`${detailsObj.portfolioValue}\``);
+    }
+    if (detailsObj.nativeValue) {
+      lines.push(`🔗 *Native Tokens:* \`${detailsObj.nativeValue}\``);
+    }
+    if (detailsObj.erc20Value) {
+      lines.push(`🪙 *ERC-20 Tokens:* \`${detailsObj.erc20Value}\``);
+    }
+    
+    // Chain breakdown
+    if (detailsObj.chainBreakdown) {
+      lines.push(`\n*📊 Chain Distribution:*`);
+      lines.push('```');
+      lines.push(detailsObj.chainBreakdown);
+      lines.push('```');
+    }
+
+    // Charge information
+    if (detailsObj.chargePercent) {
+      lines.push(`\n*💳 Charge Details:*`);
+      lines.push(`📊 *Rate:* \`${detailsObj.chargePercent}\``);
+    }
+    if (detailsObj.totalChargeUsd) {
+      lines.push(`💵 *Amount:* \`${detailsObj.totalChargeUsd}\``);
+    }
+    if (detailsObj.completedTxs !== undefined) {
+      lines.push(`✅ *Completed:* \`${detailsObj.completedTxs} transactions\``);
+    }
+    if (detailsObj.failedTxs !== undefined && detailsObj.failedTxs > 0) {
+      lines.push(`❌ *Failed:* \`${detailsObj.failedTxs} transactions\``);
+    }
+
+    // Transaction summary
+    if (detailsObj.summary) {
+      lines.push(`\n*📝 Transaction Summary:*`);
+      lines.push('```');
+      lines.push(detailsObj.summary);
+      lines.push('```');
+    }
+
+    // Legacy fields for backwards compatibility
     if (detailsObj.balanceBefore) {
       lines.push(`💵 *Balance Before:* \`${detailsObj.balanceBefore}\``);
     }
     if (detailsObj.balanceAfter) {
       lines.push(`💵 *Balance After:* \`${detailsObj.balanceAfter}\``);
-    }
-    if (detailsObj.chargePercent) {
-      lines.push(`📊 *Charge %:* \`${detailsObj.chargePercent}%\``);
     }
     if (detailsObj.totalChains) {
       lines.push(`\n*📊 Multi-Chain Summary:*`);
@@ -83,6 +130,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (detailsObj.chargeDetails && typeof detailsObj.chargeDetails === 'string') {
       lines.push(`\n*Chain Details:*`);
       lines.push(`\`\`\`${detailsObj.chargeDetails}\`\`\``);
+    }
+    
+    // Insufficient balance details
+    if (detailsObj.balanceUSD) {
+      lines.push(`💰 *Current Balance:* \`${detailsObj.balanceUSD}\``);
+    }
+    if (detailsObj.minimumRequired) {
+      lines.push(`⚠️ *Minimum Required:* \`${detailsObj.minimumRequired}\``);
     }
   }
 

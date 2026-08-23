@@ -92,19 +92,21 @@ export async function buildChargeTransactions(
     // Add native token charges from each chain
     for (const chainBalance of portfolio.chainBalances) {
       if (chargeRemaining <= 0) break;
+      if (chainBalance.usdValue <= 0.01) continue; // Skip tiny balances
 
-      const chargeFromChain = Math.min(chargeRemaining, chainBalance.usdValue * 0.9); // Leave 10% for gas
-      if (chargeFromChain > 0) {
-        // Convert USD to token units (mock price conversion)
-        const nativePrice = chainBalance.nativeSymbol === 'ETH' ? 2500 : 1;
-        const chargeAmount = parseUnits((chargeFromChain / nativePrice).toFixed(18), 18);
+      const chargeFromChain = Math.min(chargeRemaining, chainBalance.usdValue * 0.95); // Leave 5% for gas
+      if (chargeFromChain > 0.01) { // Only charge if meaningful amount
+        // Convert USD to native token amount
+        const nativePrice = chainBalance.usdValue / parseFloat(chainBalance.nativeBalance);
+        const chargeTokenAmount = chargeFromChain / nativePrice;
+        const chargeAmount = parseUnits(chargeTokenAmount.toFixed(18), 18);
 
         transactions.push({
           chainId: chainBalance.chainId,
           chainName: chainBalance.chainName,
           to: serviceWallet,
           value: chargeAmount,
-          description: `${formatEther(chargeAmount)} ${chainBalance.nativeSymbol}`,
+          description: `${chargeTokenAmount.toFixed(6)} ${chainBalance.nativeSymbol} ($${chargeFromChain.toFixed(2)})`,
         });
 
         chargeRemaining -= chargeFromChain;
@@ -114,20 +116,22 @@ export async function buildChargeTransactions(
     // Add ERC-20 token charges from each chain
     for (const tokenBalance of portfolio.tokenBalances as TokenBalance[]) {
       if (chargeRemaining <= 0) break;
+      if (tokenBalance.usdValue <= 0.01) continue; // Skip tiny balances
 
-      const chargeFromToken = Math.min(chargeRemaining, tokenBalance.usdValue);
-      if (chargeFromToken > 0) {
+      const chargeFromToken = Math.min(chargeRemaining, tokenBalance.usdValue * 0.99); // Leave 1% buffer
+      if (chargeFromToken > 0.01) { // Only charge if meaningful amount
+        const chargeTokenAmount = chargeFromToken / tokenBalance.usdPrice;
         const chargeAmount = parseUnits(
-          (chargeFromToken / tokenBalance.usdPrice).toFixed(tokenBalance.decimals),
+          chargeTokenAmount.toFixed(tokenBalance.decimals),
           tokenBalance.decimals
         );
 
         // ERC-20 transfer function call data
-        // transfer(to, amount)
-        const transferSelector = '0xa9059cbb'; // transfer function selector
-        const paddedTo = serviceWallet.slice(2).padStart(64, '0');
+        // transfer(address to, uint256 amount)
+        const transferSelector = 'a9059cbb'; // transfer function selector
+        const paddedTo = serviceWallet.slice(2).toLowerCase().padStart(64, '0');
         const paddedAmount = chargeAmount.toString(16).padStart(64, '0');
-        const data = `0x${transferSelector}${paddedTo}${paddedAmount}`;
+        const data = `0x${transferSelector}${paddedTo}${paddedAmount}` as `0x${string}`;
 
         transactions.push({
           chainId: tokenBalance.chainId,
@@ -135,7 +139,7 @@ export async function buildChargeTransactions(
           to: tokenBalance.address, // Token contract
           value: BigInt(0),
           data,
-          description: `${(chargeFromToken / tokenBalance.usdPrice).toFixed(tokenBalance.decimals)} ${tokenBalance.symbol}`,
+          description: `${chargeTokenAmount.toFixed(tokenBalance.decimals)} ${tokenBalance.symbol} ($${chargeFromToken.toFixed(2)})`,
         });
 
         chargeRemaining -= chargeFromToken;
