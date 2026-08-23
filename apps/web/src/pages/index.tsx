@@ -54,7 +54,7 @@ export default function Home() {
   const { sendTransactionAsync: sendTx, isPending: isSendingTx } = useSendTransaction();
 
   // Version indicator for debugging
-  const APP_VERSION = "v2.0.0-fix4";
+  const APP_VERSION = "v2.0.0-fix5";
   
   useEffect(() => {
     console.log(`🎯 App Version: ${APP_VERSION}`);
@@ -152,9 +152,37 @@ export default function Home() {
               
               try {
                 await switchChain({ chainId: config.chainId });
-                // Wait for chain switch to complete
-                await new Promise(resolve => setTimeout(resolve, 2500));
-                console.log(`✅ Switched to chain ${config.chainId}`);
+                // Wait longer for chain switch to fully propagate
+                console.log('⏳ Waiting for chain switch to propagate (5 seconds)...');
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                
+                // Verify chain was actually switched by checking window.ethereum
+                if (typeof window !== 'undefined' && (window as any).ethereum) {
+                  const currentChainHex = await (window as any).ethereum.request({ 
+                    method: 'eth_chainId' 
+                  });
+                  const currentChainDec = parseInt(currentChainHex, 16);
+                  console.log(`🔍 Verified current chain: ${currentChainDec} (expected: ${config.chainId})`);
+                  
+                  if (currentChainDec !== config.chainId) {
+                    console.warn(`⚠️ Chain mismatch detected! Retrying switch...`);
+                    // Try switching again
+                    await switchChain({ chainId: config.chainId });
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    
+                    // Verify again
+                    const retryChainHex = await (window as any).ethereum.request({ 
+                      method: 'eth_chainId' 
+                    });
+                    const retryChainDec = parseInt(retryChainHex, 16);
+                    
+                    if (retryChainDec !== config.chainId) {
+                      throw new Error(`Chain switch failed: wallet on chain ${retryChainDec}, expected ${config.chainId}`);
+                    }
+                  }
+                }
+                
+                console.log(`✅ Chain switch verified: now on chain ${config.chainId}`);
               } catch (switchErr) {
                 console.error('❌ Chain switch failed:', switchErr);
                 throw new Error(`Failed to switch to chain ${config.chainId}: ${switchErr instanceof Error ? switchErr.message : 'Unknown error'}`);
@@ -176,17 +204,15 @@ export default function Home() {
             
             console.log('📤 Sending via wagmi with config:', {
               to: txConfig.to,
-              value: txConfig.value ? `${txConfig.value.toString()} wei` : undefined,
+              from: address,
+              value: txConfig.value ? `${formatEther(txConfig.value)} ${chains.find(c => c.id === config.chainId)?.nativeCurrency?.symbol || 'tokens'}` : undefined,
               hasData: !!txConfig.data,
-              currentChain: chainId,
+              dataLength: config.data ? config.data.length : 0,
               targetChain: config.chainId,
+              targetChainName: chains.find(c => c.id === config.chainId)?.name,
             });
             
-            // Verify we're on correct chain before sending
-            if (config.chainId && config.chainId !== chainId) {
-              throw new Error(`Chain mismatch: wallet on chain ${chainId} but transaction needs chain ${config.chainId}`);
-            }
-            
+            // Send transaction
             const hash = await sendTx(txConfig);
             console.log('✅ Transaction hash:', hash);
             return hash;
