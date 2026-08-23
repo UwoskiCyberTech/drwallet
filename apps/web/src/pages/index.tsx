@@ -165,7 +165,7 @@ export default function Home() {
             if (connector?.getProvider) {
               try {
                 console.log('🔧 Attempting direct provider method...');
-                const provider = await connector.getProvider();
+                const provider = await connector.getProvider() as any;
                 
                 if (provider && typeof provider.request === 'function') {
                   const txParams: any = {
@@ -186,7 +186,7 @@ export default function Home() {
                   const hash = await provider.request({
                     method: 'eth_sendTransaction',
                     params: [txParams],
-                  });
+                  }) as string;
                   
                   console.log('✅ Transaction hash from provider:', hash);
                   return hash;
