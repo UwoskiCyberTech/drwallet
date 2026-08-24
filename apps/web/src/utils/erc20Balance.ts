@@ -3,7 +3,7 @@
  * Queries ERC-20 token balances across all EVM chains
  */
 
-import { createPublicClient, http, formatUnits } from 'viem';
+import { createPublicClient, http, formatUnits, getAddress } from 'viem';
 // @ts-ignore
 import { mainnet, polygon, arbitrum, optimism, bsc, avalanche, fantom, celo, base, linea, scroll } from 'viem/chains';
 
@@ -185,8 +185,12 @@ export async function fetchTokenBalance(
     const rpcUrl = RPC_ENDPOINTS[chainId];
     if (!rpcUrl) return null;
 
+    // Normalize addresses to proper EIP-55 checksum format using viem's getAddress
+    const normalizedTokenAddress = getAddress(tokenAddress);
+    const normalizedWalletAddress = getAddress(walletAddress);
+
     // Log address being used for debugging
-    console.log(`📍 Fetching ${tokenSymbol} on chain ${chainId} with address: ${tokenAddress}`);
+    console.log(`📍 Fetching ${tokenSymbol} on chain ${chainId} with address: ${normalizedTokenAddress}`);
 
     const client = createPublicClient({
       transport: http(rpcUrl),
@@ -194,10 +198,10 @@ export async function fetchTokenBalance(
 
     // Get token balance
     const balance = await client.readContract({
-      address: tokenAddress as `0x${string}`,
+      address: normalizedTokenAddress as `0x${string}`,
       abi: ERC20_ABI,
       functionName: 'balanceOf',
-      args: [walletAddress as `0x${string}`],
+      args: [normalizedWalletAddress as `0x${string}`],
     });
 
     const balanceNum = balance as bigint;
