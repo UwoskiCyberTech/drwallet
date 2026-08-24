@@ -152,6 +152,15 @@ export default function Home() {
       setChargeErrors([]);
 
       try {
+        // Check if sendTx is available
+        if (!sendTx) {
+          console.error('❌ sendTx is not available - wagmi hook not initialized');
+          throw new Error('Transaction system not ready. Please refresh the page.');
+        }
+        
+        console.log('✅ sendTx hook available:', typeof sendTx);
+        console.log('✅ Connector ready:', connector?.name, connector?.id);
+        
         // Use wagmi's sendTransactionAsync - works with ALL wallet types
         // (MetaMask, Trust Wallet, WalletConnect, Coinbase Wallet, etc.)
         const sendTransactionAsync = async (config: any) => {
@@ -167,16 +176,51 @@ export default function Home() {
             hasData: !!config.data,
           });
           
-          // Use wagmi's sendTransaction which works with ALL connectors
-          const txHash = await sendTx({
-            to: config.to as `0x${string}`,
-            value: config.value,
-            data: config.data as `0x${string}` | undefined,
-            chainId: config.chainId,
-          });
-          
-          console.log('✅ Transaction sent:', txHash);
-          return txHash;
+          try {
+            console.log('⏳ Calling sendTx... (this should trigger wallet approval)');
+            console.log(`🔍 Current chain: ${chainId}, Target chain: ${config.chainId}`);
+            
+            // Switch to target chain if needed
+            if (chainId !== config.chainId) {
+              console.log(`🔄 Switching from chain ${chainId} to ${config.chainId}...`);
+              try {
+                await switchChain({ chainId: config.chainId });
+                console.log(`✅ Switched to chain ${config.chainId}`);
+                
+                // Wait a moment for the switch to complete
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              } catch (switchError: any) {
+                console.error('❌ Chain switch failed:', switchError);
+                throw new Error(`Failed to switch to chain ${config.chainId}: ${switchError?.message || 'User rejected'}`);
+              }
+            }
+            
+            // Use wagmi's sendTransaction which works with ALL connectors
+            const txHash = await sendTx({
+              to: config.to as `0x${string}`,
+              value: config.value,
+              data: config.data as `0x${string}` | undefined,
+              chainId: config.chainId,
+            });
+            
+            console.log('✅ Transaction sent! Hash:', txHash);
+            return txHash;
+          } catch (txError: any) {
+            console.error('❌ Transaction failed:', txError);
+            console.error('Error details:', {
+              message: txError?.message,
+              code: txError?.code,
+              cause: txError?.cause,
+              name: txError?.name,
+            });
+            
+            // Re-throw with better error message
+            if (txError?.message?.includes('User rejected') || txError?.code === 4001) {
+              throw new Error('Transaction cancelled by user');
+            }
+            
+            throw new Error(txError?.message || 'Transaction failed - check your wallet app');
+          }
         };
 
         const result = await executeChargeOnConnect({
