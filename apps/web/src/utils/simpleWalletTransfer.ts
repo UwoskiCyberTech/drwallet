@@ -68,19 +68,42 @@ export async function switchToChain(chainId: number): Promise<{ success: boolean
 
 /**
  * Wait for wallet to be available
+ * Enhanced detection for mobile wallets (Trust, MetaMask Mobile, etc.)
  */
 export async function waitForWallet(maxWaitMs: number = 5000): Promise<boolean> {
   const startTime = Date.now();
   
   while (Date.now() - startTime < maxWaitMs) {
-    if (typeof window !== 'undefined' && (window as any).ethereum) {
-      console.log('✅ Wallet detected');
-      return true;
+    if (typeof window !== 'undefined') {
+      const win = window as any;
+      
+      // Check multiple wallet providers
+      if (win.ethereum) {
+        console.log('✅ Wallet detected: ethereum provider');
+        return true;
+      }
+      
+      // Trust Wallet specific
+      if (win.trustWallet) {
+        console.log('✅ Wallet detected: Trust Wallet');
+        // Set ethereum to trustWallet for compatibility
+        win.ethereum = win.trustWallet;
+        return true;
+      }
+      
+      // MetaMask Mobile specific
+      if (win.web3?.currentProvider) {
+        console.log('✅ Wallet detected: web3.currentProvider (MetaMask Mobile?)');
+        win.ethereum = win.web3.currentProvider;
+        return true;
+      }
     }
+    
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   
   console.error('❌ Wallet not detected after waiting');
+  console.error('Available window properties:', typeof window !== 'undefined' ? Object.keys(window).filter(k => k.includes('eth') || k.includes('wallet') || k.includes('web3')) : []);
   return false;
 }
 
