@@ -107,7 +107,7 @@ export function getNativeTokenPrice(chainId: number, symbol: string): number {
   const priceMap: { [key: string]: number } = {
     ETH: 2500,
     MATIC: 0.8,
-    BNB: 600,
+    BNB: 630, // Updated to match current market rate (~$631)
     ARB: 0.8,
     OP: 1.5,
     AVAX: 25,
