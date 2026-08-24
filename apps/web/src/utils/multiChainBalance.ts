@@ -116,9 +116,9 @@ export async function buildPortfolioSnapshot(
   const tokenBalancesPromise = fetchAllTokenBalances(walletAddress);
   const timeoutPromise = new Promise<TokenBalance[]>((resolve) => 
     setTimeout(() => {
-      console.warn('⚠️ Token balance fetch timeout after 20 seconds - continuing with partial data');
+      console.warn('⚠️ Token balance fetch timeout after 10 seconds - continuing with what we have');
       resolve([]);
-    }, 20000)
+    }, 10000)
   );
   
   const tokenBalances = await Promise.race([tokenBalancesPromise, timeoutPromise]);

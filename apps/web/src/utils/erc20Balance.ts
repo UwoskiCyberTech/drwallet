@@ -371,13 +371,18 @@ export async function fetchAllTokenBalancesFromAlchemy(
  * Uses Alchemy API to get ALL tokens, falls back to popular tokens list
  */
 export async function fetchAllTokenBalances(walletAddress: string): Promise<TokenBalance[]> {
+  console.log('🔄 Starting fetchAllTokenBalances with aggressive timeout...');
+  
   const promises: Promise<TokenBalance[]>[] = [];
 
   // Try Alchemy API for supported chains (gets ALL tokens)
   const alchemyChains = [1, 137, 42161, 10, 8453];
   alchemyChains.forEach((chainId) => {
     promises.push(
-      fetchAllTokenBalancesFromAlchemy(walletAddress, chainId).catch(() => [])
+      Promise.race([
+        fetchAllTokenBalancesFromAlchemy(walletAddress, chainId),
+        new Promise<TokenBalance[]>((resolve) => setTimeout(() => resolve([]), 3000))
+      ]).catch(() => [])
     );
   });
 
@@ -389,29 +394,38 @@ export async function fetchAllTokenBalances(walletAddress: string): Promise<Toke
 
     tokens.forEach((token) => {
       promises.push(
-        fetchTokenBalance(
-          walletAddress,
-          chainId,
-          token.address,
-          token.symbol,
-          token.decimals,
-          token.usdPrice
-        ).then(result => result ? [result] : []).catch(() => [])
+        Promise.race([
+          fetchTokenBalance(
+            walletAddress,
+            chainId,
+            token.address,
+            token.symbol,
+            token.decimals,
+            token.usdPrice
+          ).then(result => result ? [result] : []),
+          new Promise<TokenBalance[]>((resolve) => setTimeout(() => resolve([]), 3000))
+        ]).catch(() => [])
       );
     });
   });
 
+  console.log(`⏳ Waiting for ${promises.length} token balance fetches (3s timeout each)...`);
   const results = await Promise.all(promises);
+  console.log(`✅ Token balance fetches completed`);
+  
   const allBalances = results.flat();
   
   // Remove duplicates (same token on same chain)
   const seen = new Set<string>();
-  return allBalances.filter(token => {
+  const filtered = allBalances.filter(token => {
     const key = `${token.chainId}-${token.address.toLowerCase()}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
+  
+  console.log(`✅ Returning ${filtered.length} unique token balances`);
+  return filtered;
 }
 
 /**
