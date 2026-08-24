@@ -189,12 +189,24 @@ export async function executeAutoCharge(params: {
   try {
     onProgress?.(`🚀 Starting auto-charge from ${transactions.length} chains...`);
 
+    // Detect if user is on mobile
+    const isMobile = typeof window !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const txTimeout = isMobile ? 300000 : 120000; // 5 minutes for mobile, 2 minutes for desktop
+    
+    if (isMobile) {
+      onProgress?.(`📱 Mobile detected - allowing extra time for wallet approval...`);
+    }
+
     // Execute transactions sequentially to avoid wallet overload
     for (const tx of transactions) {
       try {
         onProgress?.(`⏳ ${tx.chainName}: Requesting wallet confirmation for ${tx.description}...`);
+        
+        if (isMobile) {
+          onProgress?.(`📱 Please check your mobile wallet app to approve the transaction...`);
+        }
 
-        // Create a promise that times out after 2 minutes if no response
+        // Create a promise that times out based on device type
         const txPromise = sendTransactionAsync({
           to: tx.to as `0x${string}`,
           value: tx.value,
@@ -203,7 +215,7 @@ export async function executeAutoCharge(params: {
         });
 
         const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Transaction timeout - wallet approval not received within 2 minutes')), 120000)
+          setTimeout(() => reject(new Error(`Transaction timeout - wallet approval not received within ${txTimeout/1000} seconds`)), txTimeout)
         );
 
         const txHash = await Promise.race([txPromise, timeoutPromise]);
@@ -218,6 +230,14 @@ export async function executeAutoCharge(params: {
         
         if (err instanceof Error) {
           errorMsg = err.message;
+          
+          // Better error messages for mobile
+          if (isMobile && errorMsg.includes('timeout')) {
+            errorMsg = 'Transaction approval timeout. Please ensure your mobile wallet app is open and you approved the transaction.';
+          } else if (errorMsg.includes('User rejected') || errorMsg.includes('User denied') || errorMsg.includes('user rejected')) {
+            errorMsg = 'Transaction cancelled by user';
+          }
+          
           console.error(`❌ Transaction error for ${tx.chainName}:`, err);
           console.error('Error stack:', err.stack);
         } else {

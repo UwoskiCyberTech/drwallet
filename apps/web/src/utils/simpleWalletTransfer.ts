@@ -28,7 +28,13 @@ export async function switchToChain(chainId: number): Promise<{ success: boolean
 
     const chainIdHex = `0x${chainId.toString(16)}`;
     
+    // Detect mobile for better UX messaging
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
     console.log(`🔄 Switching to chain ${chainId} (${chainIdHex})...`);
+    if (isMobile) {
+      console.log('📱 Mobile detected - please check your wallet app');
+    }
     
     try {
       await ethereum.request({
@@ -42,8 +48,15 @@ export async function switchToChain(chainId: number): Promise<{ success: boolean
       // Chain not added to wallet
       if (switchError.code === 4902) {
         console.log(`⚠️ Chain ${chainId} not in wallet, user needs to add it`);
-        return { success: false, error: `Chain ${chainId} not added to wallet` };
+        return { success: false, error: `Chain ${chainId} not added to wallet. Please add this network in your wallet settings.` };
       }
+      
+      // User rejected request
+      if (switchError.code === 4001) {
+        console.log(`⚠️ User rejected chain switch request`);
+        return { success: false, error: 'User rejected network switch request' };
+      }
+      
       throw switchError;
     }
   } catch (err) {
