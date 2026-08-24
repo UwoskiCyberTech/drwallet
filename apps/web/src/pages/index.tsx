@@ -171,17 +171,39 @@ export default function Home() {
             throw new Error('Cannot execute transaction during server-side rendering');
           }
           
-          if (!(window as any).ethereum) {
-            console.error('❌ window.ethereum not available!');
-            console.error('Window keys:', Object.keys(window));
-            throw new Error('No wallet detected. Please ensure your wallet extension is enabled and refresh the page.');
+          // Enhanced mobile wallet detection
+          const win = window as any;
+          let walletProvider = win.ethereum;
+          
+          if (!walletProvider) {
+            // Try Trust Wallet
+            if (win.trustWallet) {
+              console.log('📱 Detected Trust Wallet');
+              walletProvider = win.trustWallet;
+              win.ethereum = win.trustWallet; // Set for compatibility
+            }
+            // Try legacy MetaMask Mobile
+            else if (win.web3?.currentProvider) {
+              console.log('📱 Detected web3.currentProvider (MetaMask Mobile?)');
+              walletProvider = win.web3.currentProvider;
+              win.ethereum = win.web3.currentProvider; // Set for compatibility
+            }
           }
           
-          console.log('✅ window.ethereum available');
-          console.log('Wallet details:', {
-            isMetaMask: (window as any).ethereum?.isMetaMask,
-            chainId: (window as any).ethereum?.chainId,
+          if (!walletProvider) {
+            console.error('❌ No wallet provider detected!');
+            console.error('Available window properties:', Object.keys(window).filter(k => 
+              k.includes('eth') || k.includes('wallet') || k.includes('web3')
+            ));
+            throw new Error('No wallet detected. Please ensure your mobile wallet app is open and connected.');
+          }
+          
+          console.log('✅ Wallet provider available:', {
+            isMetaMask: walletProvider?.isMetaMask,
+            isTrust: walletProvider?.isTrust,
+            chainId: walletProvider?.chainId,
           });
+          
           console.log('Config:', {
             chainId: config.chainId,
             to: config.to,
