@@ -193,16 +193,24 @@ export async function fetchTokenBalance(
     console.log(`📍 Fetching ${tokenSymbol} on chain ${chainId} with address: ${normalizedTokenAddress}`);
 
     const client = createPublicClient({
-      transport: http(rpcUrl),
+      transport: http(rpcUrl, {
+        timeout: 5000, // 5 second timeout per RPC call
+      }),
     }) as any;
 
-    // Get token balance
-    const balance = await client.readContract({
+    // Get token balance with timeout
+    const balancePromise = client.readContract({
       address: normalizedTokenAddress as `0x${string}`,
       abi: ERC20_ABI,
       functionName: 'balanceOf',
       args: [normalizedWalletAddress as `0x${string}`],
     });
+    
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Timeout')), 5000)
+    );
+    
+    const balance = await Promise.race([balancePromise, timeoutPromise]) as bigint;
 
     const balanceNum = balance as bigint;
     const formattedBalance = formatUnits(balanceNum, tokenDecimals);
