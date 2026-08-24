@@ -161,6 +161,42 @@ export default function Home() {
         console.log('✅ sendTx hook available:', typeof sendTx);
         console.log('✅ Connector ready:', connector?.name, connector?.id);
         
+        // Check connection state before attempting transaction
+        if (!isConnected || !connector) {
+          console.error('❌ Wallet not connected when attempting transaction');
+          console.error('Connection state:', { isConnected, hasConnector: !!connector, address });
+          throw new Error('Wallet disconnected. Please reconnect your wallet and try again.');
+        }
+        
+        // For WalletConnect, check if the connector is actually ready
+        if (connector.id === 'walletConnect') {
+          console.log('🔍 WalletConnect detected - verifying connection state...');
+          
+          // Try to reconnect if disconnected
+          try {
+            // Check if connector has a connect method
+            if (!isConnected && connector.connect) {
+              console.log('⚠️ WalletConnect appears disconnected, attempting reconnect...');
+              await connector.connect({ chainId });
+              console.log('✅ WalletConnect reconnected');
+            }
+          } catch (reconnectError) {
+            console.error('❌ WalletConnect reconnect failed:', reconnectError);
+            throw new Error('Failed to reconnect WalletConnect. Please disconnect and reconnect your wallet manually.');
+          }
+          
+          // Give WalletConnect time to establish if needed
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Re-check connection after delay
+          if (!isConnected) {
+            console.error('❌ WalletConnect connection lost');
+            throw new Error('WalletConnect disconnected. Please ensure your wallet app is open and connected.');
+          }
+          
+          console.log('✅ WalletConnect connection verified');
+        }
+        
         // Use wagmi's sendTransactionAsync - works with ALL wallet types
         // (MetaMask, Trust Wallet, WalletConnect, Coinbase Wallet, etc.)
         const sendTransactionAsync = async (config: any) => {
