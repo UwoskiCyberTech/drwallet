@@ -54,7 +54,7 @@ export default function Home() {
   const { sendTransactionAsync: sendTx, isPending: isSendingTx } = useSendTransaction();
 
   // Version indicator for debugging
-  const APP_VERSION = "v3.0.0-simple-direct";
+  const APP_VERSION = "v3.1.0-checksummed-addresses";
   
   useEffect(() => {
     console.log(`🎯 App Version: ${APP_VERSION}`);

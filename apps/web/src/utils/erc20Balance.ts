@@ -185,6 +185,9 @@ export async function fetchTokenBalance(
     const rpcUrl = RPC_ENDPOINTS[chainId];
     if (!rpcUrl) return null;
 
+    // Log address being used for debugging
+    console.log(`📍 Fetching ${tokenSymbol} on chain ${chainId} with address: ${tokenAddress}`);
+
     const client = createPublicClient({
       transport: http(rpcUrl),
     }) as any;
