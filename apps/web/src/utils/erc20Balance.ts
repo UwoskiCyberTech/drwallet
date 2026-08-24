@@ -68,8 +68,8 @@ export const POPULAR_TOKENS: {
   56: [
     { address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', symbol: 'USDC', decimals: 18, usdPrice: 1.0 },
     { address: '0x55d398326f99059fF775485246999027B3197955', symbol: 'USDT', decimals: 18, usdPrice: 1.0 },
-    { address: '0x1AF3F329e8BE154074D8769D1FFa4eE07A571f37c', symbol: 'DAI', decimals: 18, usdPrice: 1.0 },
-    { address: '0x7130d2A12B9BCbFAe356A3f7bb3BF63d30e09F94', symbol: 'WBTC', decimals: 18, usdPrice: 60000 },
+    { address: '0x1af3f329e8be154074d8769d1ffa4ee07a571f37', symbol: 'DAI', decimals: 18, usdPrice: 1.0 }, // Lowercase for checksum
+    { address: '0x7130d2A12B9BCbfAe356A3f7bb3BF63d30e09F94', symbol: 'WBTC', decimals: 18, usdPrice: 60000 },
     { address: '0xbb4CdB9CBd36B01bD1cbaEBF2De08d9173bc095c', symbol: 'WBNB', decimals: 18, usdPrice: 600 },
     { address: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8', symbol: 'ETH', decimals: 18, usdPrice: 2500 },
     { address: '0xcF6BB5389c92Bdda8a3747Ddb454cB7a64626C63', symbol: 'XVS', decimals: 18, usdPrice: 12 },
