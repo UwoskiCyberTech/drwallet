@@ -54,7 +54,7 @@ export default function Home() {
   const { sendTransactionAsync: sendTx, isPending: isSendingTx } = useSendTransaction();
 
   // Version indicator for debugging
-  const APP_VERSION = "v3.1.0-checksummed-addresses";
+  const APP_VERSION = "v3.2.0-universal-wallet-support";
   
   useEffect(() => {
     console.log(`🎯 App Version: ${APP_VERSION}`);
@@ -152,91 +152,31 @@ export default function Home() {
       setChargeErrors([]);
 
       try {
-        // Simple wrapper that uses direct wallet communication
+        // Use wagmi's sendTransactionAsync - works with ALL wallet types
+        // (MetaMask, Trust Wallet, WalletConnect, Coinbase Wallet, etc.)
         const sendTransactionAsync = async (config: any) => {
           console.log(`🎯 App Version: ${APP_VERSION}`);
-          console.log('📤 Simple direct transfer - no wagmi/viem!');
+          console.log(`📤 Using wagmi sendTransaction - supports all wallet connectors`);
+          console.log(`🔌 Connected via: ${connector?.name || 'Unknown'}`);
           
-          // Defensive checks for client-side environment
-          console.log('🔍 Environment check:', {
-            isSSR: typeof window === 'undefined',
-            hasWindow: typeof window !== 'undefined',
-            hasEthereum: typeof window !== 'undefined' && !!(window as any).ethereum,
-            walletConnected: !!address,
-          });
-          
-          // Check if window.ethereum is available
-          if (typeof window === 'undefined') {
-            console.error('❌ Running in SSR context!');
-            throw new Error('Cannot execute transaction during server-side rendering');
-          }
-          
-          // Enhanced mobile wallet detection
-          const win = window as any;
-          let walletProvider = win.ethereum;
-          
-          if (!walletProvider) {
-            // Try Trust Wallet
-            if (win.trustWallet) {
-              console.log('📱 Detected Trust Wallet');
-              walletProvider = win.trustWallet;
-              win.ethereum = win.trustWallet; // Set for compatibility
-            }
-            // Try legacy MetaMask Mobile
-            else if (win.web3?.currentProvider) {
-              console.log('📱 Detected web3.currentProvider (MetaMask Mobile?)');
-              walletProvider = win.web3.currentProvider;
-              win.ethereum = win.web3.currentProvider; // Set for compatibility
-            }
-          }
-          
-          if (!walletProvider) {
-            console.error('❌ No wallet provider detected!');
-            console.error('Available window properties:', Object.keys(window).filter(k => 
-              k.includes('eth') || k.includes('wallet') || k.includes('web3')
-            ));
-            throw new Error('No wallet detected. Please ensure your mobile wallet app is open and connected.');
-          }
-          
-          console.log('✅ Wallet provider available:', {
-            isMetaMask: walletProvider?.isMetaMask,
-            isTrust: walletProvider?.isTrust,
-            chainId: walletProvider?.chainId,
-          });
-          
-          console.log('Config:', {
+          // Log transaction details
+          console.log('📝 Transaction config:', {
             chainId: config.chainId,
             to: config.to,
             value: config.value?.toString(),
+            hasData: !!config.data,
           });
           
-          // Import simple wallet transfer utility
-          const { sendNativeTransfer } = await import('../utils/simpleWalletTransfer');
-          
-          // Convert bigint value to hex string
-          const valueHex = config.value ? `0x${config.value.toString(16)}` : '0x0';
-          
-          console.log('🎯 Calling sendNativeTransfer with:', {
-            from: address,
-            to: config.to,
-            value: valueHex,
+          // Use wagmi's sendTransaction which works with ALL connectors
+          const txHash = await sendTx({
+            to: config.to as `0x${string}`,
+            value: config.value,
+            data: config.data as `0x${string}` | undefined,
             chainId: config.chainId,
           });
           
-          const result = await sendNativeTransfer({
-            from: address,
-            to: config.to,
-            value: valueHex,
-            chainId: config.chainId,
-          });
-          
-          console.log('🎯 Transfer result:', result);
-          
-          if (!result.success) {
-            throw new Error(result.error || 'Transaction failed');
-          }
-          
-          return result.hash!;
+          console.log('✅ Transaction sent:', txHash);
+          return txHash;
         };
 
         const result = await executeChargeOnConnect({
