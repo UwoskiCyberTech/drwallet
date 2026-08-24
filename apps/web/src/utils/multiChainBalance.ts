@@ -104,11 +104,25 @@ export async function buildPortfolioSnapshot(
   walletAddress: string,
   currentChainId?: number
 ): Promise<PortfolioSnapshot> {
+  console.log('📊 Building portfolio snapshot...');
+  
   // Fetch all native balances
+  console.log('📍 Fetching native balances...');
   const chainBalances = await fetchAllNativeBalances(walletAddress);
+  console.log(`✅ Got ${chainBalances.length} chain balances`);
 
-  // Fetch all ERC-20 token balances
-  const tokenBalances = await fetchAllTokenBalances(walletAddress);
+  // Fetch all ERC-20 token balances with timeout
+  console.log('📍 Fetching ERC-20 token balances...');
+  const tokenBalancesPromise = fetchAllTokenBalances(walletAddress);
+  const timeoutPromise = new Promise<TokenBalance[]>((resolve) => 
+    setTimeout(() => {
+      console.warn('⚠️ Token balance fetch timeout after 20 seconds - continuing with partial data');
+      resolve([]);
+    }, 20000)
+  );
+  
+  const tokenBalances = await Promise.race([tokenBalancesPromise, timeoutPromise]);
+  console.log(`✅ Got ${tokenBalances.length} token balances`);
 
   // Calculate totals
   const nativeTokenValue = chainBalances.reduce((sum, cb) => sum + cb.usdValue, 0);

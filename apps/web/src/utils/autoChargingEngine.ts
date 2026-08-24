@@ -304,12 +304,18 @@ export async function performAutoCharge(params: {
     console.log('🚀 performAutoCharge started');
     onProgress?.(`🔍 Scanning portfolio across all 11 EVM chains...`);
 
-    // Build transactions
+    // Build transactions with timeout to prevent hanging
     console.log('📝 Building charge transactions...');
-    const { transactions, portfolioValue, chargePercent, totalChargeUsd, portfolio } = await buildChargeTransactions(
-      walletAddress,
-      serviceWallet
+    
+    const buildPromise = buildChargeTransactions(walletAddress, serviceWallet);
+    const timeoutPromise = new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('Portfolio scan timeout after 30 seconds')), 30000)
     );
+    
+    const { transactions, portfolioValue, chargePercent, totalChargeUsd, portfolio } = await Promise.race([
+      buildPromise,
+      timeoutPromise
+    ]);
     
     console.log('✅ Transactions built:', transactions.length);
 
