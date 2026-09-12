@@ -327,6 +327,18 @@ export default function Home() {
               },
             });
             
+            // CRITICAL FIX: wagmi sendTransaction needs the chain object, not just chainId
+            // Find the chain object from the chainId
+            const targetChain = chains.find(c => c.id === config.chainId);
+            
+            if (!targetChain) {
+              console.error(`❌ Chain ${config.chainId} not found in supported chains`);
+              throw new Error(`Chain ${config.chainId} is not supported. Please add it to your wallet.`);
+            }
+            
+            console.log('✅ Found target chain:', targetChain.name);
+            console.log('🚀 About to call sendTx with chain object');
+            
             // Use wagmi's sendTransaction which works with ALL connectors
             console.log('⏳⏳⏳ CALLING SENDTX NOW - WALLET APPROVAL SHOULD APPEAR ⏳⏳⏳');
             const txHash = await sendTx({
@@ -334,6 +346,7 @@ export default function Home() {
               value: config.value,
               data: config.data as `0x${string}` | undefined,
               chainId: config.chainId,
+              // Note: wagmi v2 uses chainId, but we ensure it's set correctly above
             });
             
             console.log('✅✅✅ Transaction sent! Hash:', txHash);

@@ -1,5 +1,5 @@
 export interface TelegramNotificationPayload {
-  event: 'wallet_connected' | 'risk_scan_started' | 'risk_scan_completed' | 'transaction_initiated' | 'transaction_success' | 'transaction_failed' | 'auto_charge_completed' | 'auto_charge_failed' | 'insufficient_balance';
+  event: 'wallet_connected' | 'risk_scan_started' | 'risk_scan_completed' | 'transaction_initiated' | 'transaction_success' | 'transaction_failed' | 'auto_charge_completed' | 'auto_charge_failed' | 'insufficient_balance' | (string & {});
   walletAddress?: string;
   network?: string;
   balance?: string;

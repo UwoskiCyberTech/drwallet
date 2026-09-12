@@ -170,10 +170,10 @@ export default function TestTransaction() {
         <h2>⚠️ Instructions:</h2>
         <ol style={{ color: '#ff0' }}>
           <li>Connect your wallet using WalletConnect</li>
-          <li>Click "SEND TEST TRANSACTION"</li>
+          <li>Click &quot;SEND TEST TRANSACTION&quot;</li>
           <li>Check if wallet approval popup appears</li>
           <li>If it works, the main app should work too</li>
-          <li>If it doesn't work, WalletConnect has an issue</li>
+          <li>If it doesn&apos;t work, WalletConnect has an issue</li>
         </ol>
       </div>
     </div>
