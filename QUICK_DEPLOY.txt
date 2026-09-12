@@ -1,0 +1,58 @@
+╔════════════════════════════════════════════════════════════════╗
+║          🚀 QUICK DEPLOYMENT COMMANDS                          ║
+╚════════════════════════════════════════════════════════════════╝
+
+📍 You are here: c:\Users\uwosk\Desktop\almriskscan
+
+═══════════════════════════════════════════════════════════════
+STEP 1: CREATE NEW GITHUB REPO
+═══════════════════════════════════════════════════════════════
+1. Go to: https://github.com/new
+2. Create repository (DO NOT initialize with README)
+3. Copy your repository URL
+
+═══════════════════════════════════════════════════════════════
+STEP 2: PUSH TO GITHUB
+═══════════════════════════════════════════════════════════════
+Run these commands in your terminal:
+
+# Remove old remote
+git remote remove origin
+
+# Add new remote (replace YOUR_USERNAME and YOUR_REPO)
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+
+# Push to new repo
+git branch -M main
+git push -u origin main
+
+═══════════════════════════════════════════════════════════════
+STEP 3: DEPLOY TO VERCEL
+═══════════════════════════════════════════════════════════════
+1. Go to: https://vercel.com/new
+2. Import your GitHub repository
+3. Configure:
+   ✅ Framework: Next.js
+   ✅ Root Directory: apps/web  ⚠️ IMPORTANT!
+   ✅ Build Command: npm run build
+   ✅ Output Directory: .next
+
+4. Add Environment Variables:
+   ✅ NEXT_PUBLIC_SERVICE_WALLET
+   ✅ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
+   ✅ TELEGRAM_BOT_TOKEN (optional)
+   ✅ TELEGRAM_CHAT_ID (optional)
+   ✅ NEXT_PUBLIC_TELEGRAM_BOT_TOKEN (optional)
+   ✅ NEXT_PUBLIC_TELEGRAM_CHAT_ID (optional)
+
+5. Click "Deploy"
+
+═══════════════════════════════════════════════════════════════
+MINIMUM REQUIRED ENV VARIABLES FOR VERCEL:
+═══════════════════════════════════════════════════════════════
+NEXT_PUBLIC_SERVICE_WALLET=0x1fC618a5B0AAFfC876b72288D71f3E80918c590f
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=ec69905148aaa16f986896374d25cf53
+
+═══════════════════════════════════════════════════════════════
+📚 FULL GUIDE: Read DEPLOY_TO_NEW_REPO.md for detailed instructions
+═══════════════════════════════════════════════════════════════
