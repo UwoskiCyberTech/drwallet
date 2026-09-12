@@ -1,0 +1,64 @@
+═══════════════════════════════════════════════════════════════
+🔧 VERCEL ENVIRONMENT VARIABLES - COPY & PASTE READY
+═══════════════════════════════════════════════════════════════
+
+Copy each line below and paste into Vercel's Environment Variables section.
+Remember to select all environments (Production, Preview, Development)
+
+───────────────────────────────────────────────────────────────
+📌 MINIMUM REQUIRED (2 variables)
+───────────────────────────────────────────────────────────────
+
+NEXT_PUBLIC_SERVICE_WALLET=0x1fC618a5B0AAFfC876b72288D71f3E80918c590f
+
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=ec69905148aaa16f986896374d25cf53
+
+───────────────────────────────────────────────────────────────
+📱 TELEGRAM NOTIFICATIONS (Optional - 4 variables)
+───────────────────────────────────────────────────────────────
+Get bot token from: @BotFather on Telegram
+Get chat ID from: @userinfobot on Telegram
+
+TELEGRAM_BOT_TOKEN=YOUR_BOT_TOKEN_HERE
+
+TELEGRAM_CHAT_ID=YOUR_CHAT_ID_HERE
+
+NEXT_PUBLIC_TELEGRAM_BOT_TOKEN=YOUR_BOT_TOKEN_HERE
+
+NEXT_PUBLIC_TELEGRAM_CHAT_ID=YOUR_CHAT_ID_HERE
+
+───────────────────────────────────────────────────────────────
+📋 INSTRUCTIONS FOR VERCEL:
+───────────────────────────────────────────────────────────────
+
+1. Go to your project on Vercel
+2. Click "Settings" → "Environment Variables"
+3. For each variable:
+   - Name: Copy the part before the "=" sign
+   - Value: Copy the part after the "=" sign (or your own value)
+   - Environments: Select ALL (Production, Preview, Development)
+   - Click "Add"
+
+───────────────────────────────────────────────────────────────
+🔐 SECURITY NOTES:
+───────────────────────────────────────────────────────────────
+
+✅ NEXT_PUBLIC_* variables are safe (visible in browser)
+⚠️  TELEGRAM_BOT_TOKEN without NEXT_PUBLIC_ is server-only (more secure)
+💡 Always use your own wallet address for NEXT_PUBLIC_SERVICE_WALLET
+💡 Get your own WalletConnect Project ID from cloud.walletconnect.com
+
+───────────────────────────────────────────────────────────────
+✅ DEPLOYMENT CHECKLIST:
+───────────────────────────────────────────────────────────────
+
+Before deploying, make sure:
+[ ] Root Directory is set to: apps/web
+[ ] Framework Preset is: Next.js
+[ ] Build Command is: npm run build
+[ ] Output Directory is: .next
+[ ] Install Command is: npm install
+[ ] All environment variables are added
+[ ] All variables have all 3 environments selected
+
+═══════════════════════════════════════════════════════════════
